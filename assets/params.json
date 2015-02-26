@@ -1,0 +1,93 @@
+{
+  "camera": {
+    "fov": 30,
+    "nearZ": 0.05,
+    "farZ": 1000,
+
+    "eyePos": [ -8, 14, -11 ],
+    "interestPos": [ 0, 1, 0 ],
+
+    "centerRate": 0.5,
+    "bottomRate": 0.8,
+
+    "easeCubeStop": 0.05,
+    "easeCubeMove": 0.07
+  },
+
+  
+  "cube": {
+    "size": 1
+  },
+
+  "light": {
+    "pos": [ 0, 10, 5 ],
+
+    "ConstantAttenuation":  0,
+    "LinearAttenuation":    0,
+    "QuadraticAttenuation": 0.009,
+
+    "Diffuse": [ 0.8, 0.8, 0.8 ],
+    "Ambient": [ 0.1, 0.1, 0.1 ],
+    "Specular": [ 0.5, 0.5, 0.5 ]
+  },
+
+  
+  "stage": {
+    "width": 9,
+    "length": 50,
+
+    "startLength": 15,
+
+    "startLine": 5,
+    "finishLine": 45,
+    
+    "speed": 1
+  },
+
+  "CubePlayer": {
+    "color": [ 1, 1, 1 ],
+
+    "moveRotateTime": 0.4,
+    "moveThreshold": 0.8,
+    "speedRate": 0.1,
+    "maxMoveSpeed": 5,
+    "moveSpeed": [ 1, 0.8, 0.6, 0.5, 0.4, 0.3 ]
+  },
+
+  "game": {
+    "entry": [ 4, 0, 1 ]
+  },
+
+  "fallCube": {
+    "acc": [ 0, -1, 0 ],
+    "activeTime": 1
+  },
+
+  "sound": [
+    {
+      "name": "sample_1",
+      "type": "file",
+      "category": "bgm",
+      "path": "sample_1.mp4",
+      "gain": 1.0,
+      "loop": false
+    },
+    {
+      "name": "sample_2",
+      "type": "buffer",
+      "category": "se",
+      "path": "sample_2.ogg",
+      "gain": 1.0,
+      "loop": false
+    },
+    {
+      "name": "sample_3",
+      "type": "buffer",
+      "category": "se",
+      "path": "sample_3.ogg",
+      "gain": 1.0,
+      "loop": false
+    }
+  ]
+  
+}
