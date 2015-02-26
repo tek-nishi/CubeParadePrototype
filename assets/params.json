@@ -41,6 +41,9 @@
     "startLine": 5,
     "finishLine": 45,
     
+    "collapseSpeed": 1,
+    "buildSpeed": 1,
+
     "speed": 1
   },
 

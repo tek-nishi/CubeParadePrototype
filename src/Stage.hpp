@@ -8,6 +8,8 @@
 #include <vector>
 #include "Message.hpp"
 #include "StageCube.hpp"
+#include "TimerTask.hpp"
+#include "LapTimer.hpp"
 
 
 namespace ngs {
@@ -21,6 +23,10 @@ public:
     params_(params),
     random_(random),
     cube_size_(params.getValueForKey<float>("cube.size")),
+    finish_line_(params.getValueForKey<u_int>("stage.finishLine")),
+    collapse_timer_(params.getValueForKey<float>("stage.collapseSpeed")),
+    collapse_index_(0),
+    build_timer_(params.getValueForKey<float>("stage.buildSpeed")),
     spawn_speed_(params.getValueForKey<float>("stage.speed")),
     next_spawn_(0),
     cube_index_(0),
@@ -31,7 +37,6 @@ public:
     u_int length       = params.getValueForKey<u_int>("stage.length");
     u_int start_length = params.getValueForKey<u_int>("stage.startLength");
     u_int start_line   = params.getValueForKey<u_int>("stage.startLine");
-    u_int finish_line  = params.getValueForKey<u_int>("stage.finishLine");
 
     width_  = width * cube_size_;
     length_ = start_length * cube_size_;
@@ -47,7 +52,7 @@ public:
         int y = 0;
         bool active = true;
 
-        if ((iz > start_line) && (iz < finish_line)) {
+        if ((iz > start_line) && (iz < finish_line_)) {
           // 時々高いの
           if (random_.nextFloat() < 0.05) {
             y = 1;
@@ -61,7 +66,7 @@ public:
         
 
         ci::Color color = color_a;
-        if ((iz == start_line) || (iz == finish_line)) {
+        if ((iz == start_line) || (iz == finish_line_)) {
           color = ci::Color(1, 0, 0) * color;
         }
         
@@ -107,11 +112,37 @@ public:
     if (!started_) return;
     
     double delta_time = boost::any_cast<double>(params.at("deltaTime"));
+
+    time_task_(delta_time);
+    
+    if (collapse_timer_(delta_time)) {
+      // 一定時間ごとにステージ端が崩壊
+      const auto& cube_line = active_cubes_.front();
+      for (const auto& cube : cube_line) {
+        if (!cube.isActive()) continue;
+        
+        Param params = {
+          { "entry_pos", cube.posBlock() },
+          { "color", cube.color() },
+          { "speed", 1.0f + random_.nextFloat() }
+        };
+        
+        message_.signal(Msg::CREATE_FALLCUBE, params);
+      };
+      active_cubes_.pop_front();
+      
+      cube_index_ += 1;
+      if (cube_index_ == finish_line_) {
+        collapse_timer_.pause();
+      }
+    }
+
     
     next_spawn_ += delta_time;
     if ((spawn_index_ <= cubes_.size()) && (next_spawn_ > spawn_speed_)) {
       next_spawn_ -= spawn_speed_;
 
+#if 0
       // Cubeの落下演出
       if (!active_cubes_.empty()) {
         const auto& cube_line = active_cubes_.front();
@@ -129,6 +160,7 @@ public:
         active_cubes_.pop_front();
         cube_index_ += 1;
       }
+#endif
       
       // Cubeの追加演出
       if (spawn_index_ < cubes_.size()) {
@@ -215,11 +247,20 @@ private:
   const ci::JsonTree& params_;
   ci::Rand& random_;
 
+  TimerTask time_task_;
+  
   float width_;
   float length_;
 
   float cube_size_;
+  u_int finish_line_;
+  
+  LapTimer collapse_timer_;
+  size_t collapse_index_;
 
+
+  LapTimer build_timer_;
+  
   size_t spawn_index_;
   float spawn_speed_;
   float next_spawn_;

@@ -31,9 +31,12 @@ public:
     size_t num = entities_.size();
     while (num > 0) {
       // 先頭のを取り出し、有効なら最後尾に追加する
-      auto entity = entities_.front();
-      entities_.pop_front();
+      auto& entity = entities_.front();
+
+      // 参照で取り出しているので、先に追加
       if (entity->isActive()) entities_.push_back(entity);
+
+      entities_.pop_front();
       
       num -= 1;
     }
