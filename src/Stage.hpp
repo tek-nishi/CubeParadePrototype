@@ -152,6 +152,7 @@ public:
       }
 
       // TIPS:メンバ変数をキャプチャして使う場合は一旦変数にコピー
+      // ステージの追加は追加演出の後に行うので、タスクに積んでおく
       size_t build_index = build_index_;
       time_task_.add(build_speed_, [this, build_index]() {
           active_cubes_.push_back(cubes_[build_index]);

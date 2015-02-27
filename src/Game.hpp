@@ -21,6 +21,7 @@
 #include "EntryCube.hpp"
 #include "Light.hpp"
 #include "Sound.hpp"
+#include "TouchPreview.hpp"
 
 
 namespace ngs {
@@ -39,6 +40,7 @@ public:
     
     createAndAddEntity<CubePlayer>(params, Json::getVec3<int>(params["game.entry"]));
     createAndAddEntity<StageWatcher>(params["stage"]);
+    createAndAddEntity<TouchPreview>(params);
 
     message_.connect(Msg::CREATE_FALLCUBE, this, &Game::createFallcube);
     message_.connect(Msg::CREATE_ENTRYCUBE, this, &Game::createEntrycube);
@@ -128,6 +130,7 @@ public:
   }
 
   void draw() {
+    ci::gl::pushMatrices();
     ci::gl::setMatrices(camera_.body());
 
     ci::gl::enable(GL_CULL_FACE);
@@ -144,17 +147,23 @@ public:
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 #endif
     
-    ci::gl::enableDepthRead(true);
-    ci::gl::enableDepthWrite(true);
+    ci::gl::enableDepthRead();
+    ci::gl::enableDepthWrite();
     
 
-    Param params;
-    message_.signal(Msg::DRAW, params);
+    message_.signal(Msg::DRAW, Param());
 
     message_.signal(Msg::LIGHT_DISABLE, Param());
     ci::gl::disable(GL_LIGHTING);
     
     ci::gl::popMatrices();
+
+
+    ci::gl::disableDepthRead();
+    ci::gl::disableDepthWrite();
+
+    ci::gl::disable(GL_CULL_FACE);
+    message_.signal(Msg::DRAW_2D, Param());
   }
 
   

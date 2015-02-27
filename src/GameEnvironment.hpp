@@ -17,6 +17,7 @@ enum Msg {
   POST_UPDATE,
 
   DRAW,
+  DRAW_2D,
 
   TOUCH_BEGAN,
   TOUCH_MOVED,
@@ -67,6 +68,15 @@ struct Touch {
   u_int id;
   ci::Vec2f pos;
   ci::Vec2f prev_pos;
+
+  bool operator== (const Touch& rhs) const {
+    return id == rhs.id;
+  }
+
+  bool operator== (const u_int rhs_id) const {
+    return id == rhs_id;
+  }
+  
 };
 
 }

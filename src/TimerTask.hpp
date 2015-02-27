@@ -26,8 +26,7 @@ class TimerTask {
 public:
   TimerTask() = default;
   
-  void add(const float fire_time, std::function<void()> proc) {
-    // コンテナ格納時にfire_timeの小さい順に並ぶ
+  void add(const float fire_time, std::function<void()>&& proc) {
     objects_.push_back({ fire_time, proc });
   }
   
