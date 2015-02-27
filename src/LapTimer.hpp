@@ -37,6 +37,14 @@ public:
   void set(const float time) { goal_time_ = time; }
 
   void pause(const bool pause = true) { paused_ = pause; }
+
+  void stop() {
+    pause();
+    clear();
+  }
+
+  float lapseRate() const { return lap_time_ / goal_time_; }
+  bool isActive() const { return !paused_; }
   
 };
 
