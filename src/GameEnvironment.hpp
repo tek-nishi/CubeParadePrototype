@@ -51,7 +51,10 @@ enum Msg {
 
   
   SOUND_PLAY,
-  SOUND_STOP
+  SOUND_STOP,
+
+
+  TOUCHPREVIEW_TOGGLE,
 };
 
 // タッチイベント識別ID

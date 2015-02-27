@@ -73,12 +73,16 @@ public:
   }
 
 
-  void keyDown(const int keycode) {
+  void keyDown(const int keycode, const int charactor) {
     Param params = {
       { "keycode", keycode }
     };
     
     message_.signal(Msg::KEY_DOWN, params);
+
+    if (charactor == 'T') {
+      message_.signal(Msg::TOUCHPREVIEW_TOGGLE, Param());
+    }
 
 #if 0
     if (keycode == ci::app::KeyEvent::KEY_a) {

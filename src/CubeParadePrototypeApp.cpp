@@ -122,7 +122,7 @@ class CubeParadePrototypeApp : public AppNative {
     int keycode   = event.getCode();
     int charactor = event.getChar();
 
-    game_->keyDown(keycode);
+    game_->keyDown(keycode, charactor);
 
     if (keycode == ci::app::KeyEvent::KEY_ESCAPE) {
       DOUT << "Pause Game." << std::endl;
