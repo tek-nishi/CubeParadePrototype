@@ -24,7 +24,7 @@ public:
   explicit TouchPreview(Message& message) :
     message_(message),
     active_(true),
-    display_(true)
+    display_(false)
   { }
 
   

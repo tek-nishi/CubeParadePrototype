@@ -13,15 +13,11 @@
 #include "Entity.hpp"
 #include "Message.hpp"
 #include "Stage.hpp"
-#include "StageWatcher.hpp"
 #include "JsonUtil.hpp"
-#include "CubePlayer.hpp"
 #include "Camera.hpp"
-#include "FallCube.hpp"
-#include "EntryCube.hpp"
 #include "Light.hpp"
 #include "Sound.hpp"
-#include "TouchPreview.hpp"
+#include "EntityFactory.hpp"
 
 
 namespace ngs {
@@ -29,21 +25,23 @@ namespace ngs {
 class Game {
 
 public:
-  explicit Game(const ci::JsonTree& params) :
+  explicit Game(ci::JsonTree& params) :
     params_(params),
-    pause_(false),
+    factory_(message_, params, entity_holder_),
     camera_(message_, params),
     stage_(message_, params, random_),
-    light_(message_, params)
+    light_(message_, params),
+    pause_(false)
     // sound_(message_, params)
   {
-    
-    createAndAddEntity<CubePlayer>(params, Json::getVec3<int>(params["game.entry"]));
-    createAndAddEntity<StageWatcher>(params["stage"]);
-    createAndAddEntity<TouchPreview>(params);
+    message_.signal(Msg::SETUP_GAME, Param());
+    {
+      Param params = {
+        { "entry_pos", Json::getVec3<int>(params_["game.entry"]) },
+      };
+      message_.signal(Msg::CREATE_CUBEPLAYER, params);
+    }
 
-    message_.connect(Msg::CREATE_FALLCUBE, this, &Game::createFallcube);
-    message_.connect(Msg::CREATE_ENTRYCUBE, this, &Game::createEntrycube);
 
 #if 0
     {
@@ -134,6 +132,7 @@ public:
   }
 
   void draw() {
+    // 3D向け描画
     ci::gl::pushMatrices();
     ci::gl::setMatrices(camera_.body());
 
@@ -162,7 +161,7 @@ public:
     
     ci::gl::popMatrices();
 
-
+    // 2D向け描画
     ci::gl::disableDepthRead();
     ci::gl::disableDepthWrite();
 
@@ -180,17 +179,19 @@ private:
   Game(const Game&) = delete;
   Game& operator=(const Game&) = delete;
 
-  const ci::JsonTree& params_;
+  ci::JsonTree& params_;
   ci::Rand random_;
-
-  bool pause_;
   
   Message message_;
+
   EntityHolder entity_holder_;
+  EntityFactory factory_;
   
   Camera camera_;
   Stage stage_;
   Light light_;
+
+  bool pause_;
 
   // Sound sound_;
 
@@ -203,40 +204,6 @@ private:
       { "handled", false }
     };
     message_.signal(msg, params);
-  }
-
-  
-  void createFallcube(const Message::Connection& connection, Param& params) {
-    const auto& pos   = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
-    const auto& color = boost::any_cast<const ci::Color& >(params["color"]);
-    const float speed = boost::any_cast<float>(params["speed"]);
-
-    createAndAddEntity<FallCube>(params_, pos, speed, color);
-  }
-
-  void createEntrycube(const Message::Connection& connection, Param& params) {
-    const auto& pos   = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
-    float offset_y = boost::any_cast<float>(params["offset_y"]);
-    float active_time = boost::any_cast<float>(params["active_time"]);
-    const auto& color = boost::any_cast<const ci::Color& >(params["color"]);
-
-    createAndAddEntity<EntryCube>(params_, pos, offset_y, active_time, color);
-  }
-
-  
-  
-  // Entityを生成してHolderに追加
-  // FIXME:可変長引数がconst参照になってたりしてる??
-  template<typename T, typename... Args>
-  void createAndAddEntity(Args&&... args) {
-    // boost::shared_ptr<T> obj
-    //   = boost::signals2::deconstruct<T>().postconstruct(boost::ref(message_),
-    //                                                     std::forward<Args>(args)...);
-
-    boost::shared_ptr<T> obj = boost::shared_ptr<T>(new T(message_));
-    obj->setup(obj, std::forward<Args>(args)...);
-
-    entity_holder_.add(obj);
   }
   
 };

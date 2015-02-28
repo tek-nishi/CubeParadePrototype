@@ -21,13 +21,15 @@ class StageWatcher : public Entity {
   int goal_line_;
 
   bool started_;
+  u_int progress_;
   
   
 public:
   explicit StageWatcher(Message& message) :
     message_(message),
     active_(true),
-    started_(false)
+    started_(false),
+    progress_(0)
   { }
   
   void setup(boost::shared_ptr<StageWatcher> obj_sp,
@@ -56,19 +58,23 @@ private:
       }
     }
     else {
+      // 最大進んだ距離 -> スコア
+      progress_ = std::max(u_int(pos.z), progress_);
+      
       if (pos.z == goal_line_) {
         // Finish判定が済めば、もうこのタスクは必要ない
         active_ = false;
 
         message_.signal(Msg::PARADE_FINISH, Param());
 
-        DOUT << "Parade Finish!!" << std::endl;
+        DOUT << "Parade Finish. score:" << progress_ << std::endl;
       }
     }
   }
 
   void deactivate(const Message::Connection& connection, Param& params) {
     active_ = false;
+    DOUT << "Parade Finish. score:" << progress_ << std::endl;
   }
   
 };

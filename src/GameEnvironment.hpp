@@ -25,6 +25,8 @@ enum Msg {
 
   KEY_DOWN,
 
+  SETUP_GAME,
+  
   PARADE_START,
   PARADE_FINISH,
 
@@ -42,7 +44,8 @@ enum Msg {
   // 光源用ステージ位置
   STAGE_POS,
   
-  // 落下Cube生成
+  // Entity生成
+  CREATE_CUBEPLAYER,
   CREATE_FALLCUBE,
   CREATE_ENTRYCUBE,
 

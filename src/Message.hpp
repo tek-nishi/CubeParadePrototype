@@ -22,6 +22,9 @@ using Param = std::map<std::string, boost::any>;
 class Message {
 
 public:
+  Message() = default;
+  
+  
   using Connection = boost::signals2::connection;
   // VS2013でエラー
   // using Callback = void(Param&);
@@ -84,6 +87,10 @@ public:
 
   
 private:
+  // TIPS:コピー不可
+  Message(const Message&) = delete;
+  Message& operator=(const Message&) = delete;
+
   std::map<int, SignalType> siglans_;
   
 };

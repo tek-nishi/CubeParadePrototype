@@ -5,6 +5,7 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Json.h"
+#include "cinder/System.h"
 #include "Defines.hpp"
 #include "Game.hpp"
 
@@ -30,6 +31,10 @@ class CubeParadePrototypeApp : public AppNative {
 #endif
     
     settings->enableMultiTouch();
+
+    DOUT << "MultiTouch:" << ci::System::hasMultiTouch()
+         << " touch num:" << ci::System::getMaxMultiTouchPoints()
+         << std::endl;
   }
   
 	void setup() override {
