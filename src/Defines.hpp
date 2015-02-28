@@ -4,6 +4,15 @@
 // ビルドに必要な定義
 //
 
+#if defined (_MSC_VER)
+// FIXME:double -> floatの暗黙の変換で出る警告
+#pragma warning (disable:4244)
+#pragma warning (disable:4305)
+// FIXME:ポインタで示される未知のサイズ領域に対してのメモリ操作
+#pragma warning (disable:4996)
+#endif
+
+
 // TIPS:console() をReleaseビルドで排除する
 #ifdef DEBUG
 #define DOUT ci::app::console()

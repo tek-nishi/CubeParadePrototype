@@ -11,12 +11,13 @@
 
 namespace ngs {
 
+template <typename T>
 class TimerTask {
   struct Object {
-    float fire_time;
+    T fire_time;
     std::function<void()> proc;
 
-    Object(const float t, std::function<void()> p) :
+    Object(const T t, std::function<void()> p) :
       fire_time(t),
       proc(p)
     {}
@@ -32,15 +33,15 @@ class TimerTask {
 public:
   TimerTask() = default;
   
-  void add(const float fire_time, std::function<void()>& proc) {
+  void add(const T fire_time, std::function<void()>& proc) {
     objects_.emplace_back(fire_time, proc);
   }
 
-  void add(const float fire_time, std::function<void()>&& proc) {
+  void add(const T fire_time, std::function<void()>&& proc) {
     objects_.emplace_back(fire_time, proc);
   }
   
-  void operator()(const float delta_time) {
+  void operator()(const T delta_time) {
     // TIPS:コンテナに対してremoveとeraseを同時に処理
     boost::remove_erase_if(objects_,
                            [delta_time](Object& obj) {

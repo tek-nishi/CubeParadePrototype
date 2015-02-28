@@ -288,7 +288,7 @@ private:
         double touch_time = touch.timestamp - picking_timestamp_;
         // 小さすぎる値での除算を防ぐ
         if (touch_time < (1 / 60.0)) touch_time = 1 / 60.0;
-        float speed = (distance / touch_time) * speed_rate_;
+        double speed = (distance / touch_time) * speed_rate_;
 
         DOUT << "speed:" << speed << std::endl;
           
@@ -484,10 +484,10 @@ private:
     MOVE_RIGHT
   };
 
-  bool now_rotation_;
-  bool begin_rotation_;
-  int  move_direction_;
-  int  move_speed_;
+  bool  now_rotation_;
+  bool  begin_rotation_;
+  int   move_direction_;
+  u_int move_speed_;
 
   ci::Quatf move_rotate_;
   ci::Quatf move_rotate_start_;

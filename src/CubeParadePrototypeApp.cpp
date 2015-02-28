@@ -2,11 +2,11 @@
 // Cube Parade プロトタイプ
 // 
 
+#include "Defines.hpp"
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Json.h"
 #include "cinder/System.h"
-#include "Defines.hpp"
 #include "Touch.hpp"
 #include "Game.hpp"
 

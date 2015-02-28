@@ -6,22 +6,23 @@
 
 namespace ngs {
 
+template <typename T>
 class LapTimer {
-  float lap_time_;
-  float goal_time_;
+  T lap_time_;
+  T goal_time_;
 
   bool paused_;
   
 
 public:
-  explicit LapTimer(const float goal_time) :
-    lap_time_(0.0f),
+  explicit LapTimer(const T goal_time) :
+    lap_time_(static_cast<T>(0)),
     goal_time_(goal_time),
     paused_(false)
   { }
 
   
-  bool operator()(const float delta_time) {
+  bool operator()(const T delta_time) {
     if (paused_) return false;
     
     lap_time_ += delta_time;
@@ -33,8 +34,8 @@ public:
     return false;
   }
 
-  void clear() { lap_time_ = 0.0f; }
-  void set(const float time) { goal_time_ = time; }
+  void clear() { lap_time_ = static_cast<T>(0); }
+  void set(const T time) { goal_time_ = time; }
 
   void pause(const bool pause = true) { paused_ = pause; }
 
@@ -43,7 +44,7 @@ public:
     clear();
   }
 
-  float lapseRate() const { return lap_time_ / goal_time_; }
+  T lapseRate() const { return lap_time_ / goal_time_; }
   bool isActive() const { return !paused_; }
   
 };

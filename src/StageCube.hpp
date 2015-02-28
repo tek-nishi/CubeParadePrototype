@@ -19,7 +19,7 @@ public:
             const bool active,
             const ci::Color& color = ci::Color::white()) :
     pos_block_(pos_block),
-    pos_(pos_block * size),
+    pos_(ci::Vec3f(pos_block) * size),
     size_(size),
     color_(color),
     active_(active),

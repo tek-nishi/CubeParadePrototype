@@ -199,7 +199,7 @@ private:
 
   
   void cameraviewInfo(const Message::Connection& connection, Param& params) {
-    params["stage_bottom_z"] = (collapse_index_ + collapse_timer_.lapseRate()) * cube_size_;
+    params["stage_bottom_z"] = float(collapse_index_ + collapse_timer_.lapseRate()) * cube_size_;
     params["stage_width"]    = width_;
     params["stage_length"]   = length_;
   }
@@ -220,7 +220,7 @@ private:
   const ci::JsonTree& params_;
   ci::Rand& random_;
 
-  TimerTask time_task_;
+  TimerTask<double> time_task_;
   
   float width_;
   float length_;
@@ -229,10 +229,10 @@ private:
   u_int finish_line_;
   float build_speed_;
   
-  LapTimer collapse_timer_;
+  LapTimer<double> collapse_timer_;
   size_t   collapse_index_;
 
-  LapTimer build_timer_;
+  LapTimer<double> build_timer_;
   size_t   build_index_;
   
   std::deque<std::vector<StageCube> > cubes_;
