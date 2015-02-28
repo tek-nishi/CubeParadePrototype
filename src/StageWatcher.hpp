@@ -22,6 +22,7 @@ class StageWatcher : public Entity {
 
   bool started_;
   u_int progress_;
+  int player_num_;
   
   
 public:
@@ -29,7 +30,8 @@ public:
     message_(message),
     active_(true),
     started_(false),
-    progress_(0)
+    progress_(0),
+    player_num_(0)
   { }
   
   void setup(boost::shared_ptr<StageWatcher> obj_sp,
@@ -40,6 +42,8 @@ public:
 
     message_.connect(Msg::CUBE_PLAYER_POS, obj_sp, &StageWatcher::check);
     message_.connect(Msg::CUBE_PLAYER_DEAD, obj_sp, &StageWatcher::deactivate);
+
+    message_.connect(Msg::CREATE_CUBEPLAYER, obj_sp, &StageWatcher::createdPlayer);
   }
 
   
@@ -75,6 +79,10 @@ private:
   void deactivate(const Message::Connection& connection, Param& params) {
     active_ = false;
     DOUT << "Parade Finish. score:" << progress_ << std::endl;
+  }
+
+  void createdPlayer(const Message::Connection& connection, Param& params) {
+    player_num_ += 1;
   }
   
 };

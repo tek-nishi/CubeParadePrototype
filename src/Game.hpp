@@ -35,11 +35,15 @@ public:
     // sound_(message_, params)
   {
     message_.signal(Msg::SETUP_GAME, Param());
+
     {
-      Param params = {
-        { "entry_pos", Json::getVec3<int>(params_["game.entry"]) },
-      };
-      message_.signal(Msg::CREATE_CUBEPLAYER, params);
+      auto& entry_pos = params_["game.entry"];
+      for (auto& pos : entry_pos) {
+        Param params = {
+          { "entry_pos", Json::getVec3<int>(pos) },
+        };
+        message_.signal(Msg::CREATE_CUBEPLAYER, params);
+      }
     }
 
 
@@ -58,15 +62,15 @@ public:
   }
 
   
-  void touchesBegan(const std::vector<Touch>& touches) {
+  void touchesBegan(std::vector<Touch>& touches) {
     signalTouchMessage(Msg::TOUCH_BEGAN, touches);
   }
   
-  void touchesMoved(const std::vector<Touch>& touches) {
+  void touchesMoved(std::vector<Touch>& touches) {
     signalTouchMessage(Msg::TOUCH_MOVED, touches);
   }
   
-  void touchesEnded(const std::vector<Touch>& touches) {
+  void touchesEnded(std::vector<Touch>& touches) {
     signalTouchMessage(Msg::TOUCH_ENDED, touches);
   }
 
@@ -122,13 +126,15 @@ public:
       { "deltaTime", delta_time },
       { "frustum", ci::Frustumf(camera_.body()) },
       { "camera", &camera_ },
+      { "playerInfo", std::vector<PlayerInfo>() }
     };
+    message_.signal(Msg::GATHER_INFORMATION, params);
     message_.signal(Msg::UPDATE, params);
 
     // 他のすべてが更新されてから更新したいもの(カメラとか)
     message_.signal(Msg::POST_UPDATE, params);
 
-    entity_holder_.update();
+    entity_holder_.eraseInactiveEntity();
   }
 
   void draw() {
@@ -197,7 +203,7 @@ private:
 
 
   
-  void signalTouchMessage(const int msg, const std::vector<Touch>& touches) {
+  void signalTouchMessage(const int msg, std::vector<Touch>& touches) {
     Param params = {
       { "touch",  &touches },
       { "camera", &camera_ },

@@ -9,6 +9,7 @@
 #include "Message.hpp"
 #include "Camera.hpp"
 #include "Entity.hpp"
+#include "Utility.hpp"
 
 
 namespace ngs {
@@ -19,9 +20,12 @@ public:
   explicit CubePlayer(Message& message) :
     message_(message),
     active_(true),
+    id_(getUniqueNumber()),
     picking_(false),
-    now_rotation_(false)
+    now_rotation_(false),
+    begin_rotation_(false)
   { }
+
 
   // FIXME:コンストラクタではshared_ptrが決まっていないための措置
   void setup(boost::shared_ptr<CubePlayer> obj_sp,
@@ -46,6 +50,7 @@ public:
     message_.connect(Msg::DRAW, obj_sp, &CubePlayer::draw);
     
     message_.connect(Msg::CAMERAVIEW_INFO, obj_sp, &CubePlayer::info);
+    message_.connect(Msg::GATHER_INFORMATION, obj_sp, &CubePlayer::gatherInfo);
 
     message_.connect(Msg::TOUCH_BEGAN, obj_sp, &CubePlayer::touchesBegan);
     message_.connect(Msg::TOUCH_MOVED, obj_sp, &CubePlayer::touchesMoved);
@@ -60,15 +65,23 @@ private:
 
   
   ci::AxisAlignedBox3f getBoundingBox() {
-    return ci::AxisAlignedBox3f(ci::Vec3f(-size_ / 2,     0, -size_ / 2) + pos_,
-                                ci::Vec3f( size_ / 2, size_,  size_ / 2) + pos_);
+    return std::move(ci::AxisAlignedBox3f(ci::Vec3f(-size_ / 2,     0, -size_ / 2) + pos_,
+                                          ci::Vec3f( size_ / 2, size_,  size_ / 2) + pos_));
   }
 
 
   // TIPS:CubePlayer::update が private で Entity::update は public という定義が可能
   void update(const Message::Connection& connection, Param& params) {
     double delta_time = boost::any_cast<double>(params.at("deltaTime"));
-    
+
+    if (begin_rotation_) {
+      auto& information = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+      if (startRotationMove(information)) {
+        updateInformation(pos_block_, information);
+      }
+      begin_rotation_ = false;
+    }
+
     if (now_rotation_) {
       move_rotate_time_ += delta_time;
       if (move_rotate_time_ >= move_rotate_time_end_) {
@@ -85,7 +98,10 @@ private:
         }
 
         // まだ移動するか判定
-        continueRotationMove();
+        auto& information = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+        if (continueRotationMove(information)) {
+          updateInformation(pos_block_, information);
+        }
       }
       else {
         move_rotate_ = move_rotate_start_.slerp(move_rotate_time_ / move_rotate_time_end_,
@@ -149,6 +165,19 @@ private:
     params["player_rotation"]  = now_rotation_;
   }
 
+  void gatherInfo(const Message::Connection& connection, Param& params) {
+    auto& informations = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+
+    PlayerInfo info = {
+      id_,
+      pos_block_,
+      pos_,
+      now_rotation_
+    };
+    
+    informations.push_back(std::move(info));
+  }
+
   
   bool isBodyPicked(const Touch& touch, Camera& camera) {
     auto ray = camera.generateRay(touch.pos);
@@ -161,36 +190,43 @@ private:
 
   void touchesBegan(const Message::Connection& connection, Param& params) {
     if (picking_) return;
-    
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+
+    auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
+#if 0
     if (touches->size() >= 2) {
       // 同時タッチは無視
       return;
     }
+#endif
 
-    const auto& touch = (*touches)[0];
     auto* camera = boost::any_cast<Camera* >(params.at("camera"));
-    if (touch.prior && isBodyPicked(touch, *camera)) {
-      // pick開始
-      picking_ = true;
-      picking_id_ = touch.id;
-      picking_timestamp_ = touch.timestamp;
-      picking_timestamp_record_ = false;
+    for (auto& touch : *touches) {
+      if (!touch.prior || touch.handled) continue;
+      
+      if (isBodyPicked(touch, *camera)) {
+        // pick開始
+        touch.handled = true;
+        
+        picking_ = true;
+        picking_id_ = touch.id;
+        picking_timestamp_ = touch.timestamp;
+        picking_timestamp_record_ = false;
 
-      // cubeの上平面との交点
-      auto ray = camera->generateRay(touch.pos);
+        // cubeの上平面との交点
+        auto ray = camera->generateRay(touch.pos);
 
-      float cross_z;
-      ray.calcPlaneIntersection(ci::Vec3f(0, (pos_block_.y + 1) * size_, 0), ci::Vec3f(0, 1, 0), &cross_z);
-      picking_pos_ = ray.calcPosition(cross_z);
-      picking_plane_ = ci::Vec3f(0, (pos_block_.y + 1) * size_, 0);
+        float cross_z;
+        ray.calcPlaneIntersection(ci::Vec3f(0, (pos_block_.y + 1) * size_, 0), ci::Vec3f(0, 1, 0), &cross_z);
+        picking_pos_ = ray.calcPosition(cross_z);
+        picking_plane_ = ci::Vec3f(0, (pos_block_.y + 1) * size_, 0);
+      }
     }
   }
 
   void touchesMoved(const Message::Connection& connection, Param& params) {
     if (!picking_) return;
 
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+    const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {
       if (touch.id != picking_id_) continue;
 
@@ -206,7 +242,7 @@ private:
   void touchesEnded(const Message::Connection& connection, Param& params) {
     if (!picking_) return;
     
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+    const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {
       if (touch.id != picking_id_) continue;
 
@@ -265,7 +301,9 @@ private:
         }
         else {
           // 移動開始
-          startRotationMove(move_direction, move_speed);
+          begin_rotation_ = true;
+          move_direction_ = move_direction;
+          move_speed_     = move_speed;
         }
       }
         
@@ -315,11 +353,13 @@ private:
     }
 
     if (move_direction != MOVE_NONE) {
-      startRotationMove(move_direction, 0);
+      begin_rotation_ = true;
+      move_direction_ = move_direction;
+      move_speed_     = 0;
     }
   }
 
-  bool startRotationMove(const int direction, const int speed) {
+  bool startRotationMove(const std::vector<PlayerInfo>& information) {
     ci::Quatf rotate_table[] = {
       ci::Quatf(ci::Vec3f(1, 0, 0),  M_PI / 2),
       ci::Quatf(ci::Vec3f(1, 0, 0), -M_PI / 2),
@@ -344,7 +384,7 @@ private:
     {
       // 移動可能か調べる
       Param params = {
-        { "block_pos", pos_block_ + move_table[direction] },
+        { "block_pos", pos_block_ + move_table[move_direction_] },
       };
       message_.signal(Msg::CUBE_STAGE_HEIGHT, params);
 
@@ -353,38 +393,65 @@ private:
       if (pos.y > pos_block_.y) return false;
     }
 
-    move_direction_ = direction;
-    move_speed_     = speed;
+    if (searchOtherPlayer(pos_block_ + move_table[move_direction_], information)) {
+      return false;
+    }
+
+    begin_rotation_ = false;
 
     now_rotation_      = true;
     move_rotate_time_  = 0.0;
     move_rotate_start_ = ci::Quatf::identity();
-    move_rotate_end_   = rotate_table[direction];
+    move_rotate_end_   = rotate_table[move_direction_];
     move_rotate_       = move_rotate_start_;
-    rotate_pivpot_     = pivot_table[direction];
+    rotate_pivpot_     = pivot_table[move_direction_];
 
-    pos_block_ += move_table[direction];
+    pos_block_ += move_table[move_direction_];
 
     // speedが速いと回転スピードも速い
-    float speed_rate = (speed < speed_table_.size()) ? speed_table_[speed]
-                                                     : speed_table_.back();
+    float speed_rate = (move_speed_ < speed_table_.size()) ? speed_table_[move_speed_]
+                                                           : speed_table_.back();
 
     move_rotate_time_end_ = move_rotate_time_end_max_ * speed_rate;
     
     return true;
   }
 
-  bool continueRotationMove() {
+  bool continueRotationMove(const std::vector<PlayerInfo>& information) {
     if (move_speed_ == 0) return false;
     move_speed_ -= 1;
 
-    return startRotationMove(move_direction_, move_speed_);
+    return startRotationMove(information);
   }
-  
 
+  bool searchOtherPlayer(const ci::Vec3i block_pos, const std::vector<PlayerInfo>& information) {
+    for (auto& info : information) {
+      if (info.id == id_) continue;
+
+      // 高さ判定はしない
+      if ((info.block_pos.x == block_pos.x)
+          && (info.block_pos.z == block_pos.z)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void updateInformation(const ci::Vec3i block_pos, std::vector<PlayerInfo>& information) {
+    for (auto& info : information) {
+      if (info.id != id_) continue;
+
+      info.block_pos = block_pos;
+      break;
+    }
+  }
+
+  
   Message& message_;
   bool active_;
 
+  u_int id_;
+  
   ci::Vec3i pos_block_;
   ci::Vec3f pos_;
   ci::Quatf rot_;
@@ -418,6 +485,7 @@ private:
   };
 
   bool now_rotation_;
+  bool begin_rotation_;
   int  move_direction_;
   int  move_speed_;
 

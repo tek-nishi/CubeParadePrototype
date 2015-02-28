@@ -40,8 +40,8 @@ public:
     width_  = width * cube_size_;
     length_ = start_length * cube_size_;
     
-    ci::Color color_a = ci::Color(0.8, 0.8, 0.8);
-    ci::Color color_b = ci::Color(0.6, 0.6, 0.6);
+    ci::Color color_a = ci::Color(0.8f, 0.8f, 0.8f);
+    ci::Color color_b = ci::Color(0.6f, 0.6f, 0.6f);
 
     // FIXME:テスト生成
     for (u_int iz = 0; iz < length; ++iz) {
@@ -66,7 +66,7 @@ public:
 
         ci::Color color = color_a;
         if ((iz == start_line) || (iz == finish_line_)) {
-          color = ci::Color(1, 0, 0) * color;
+          color = ci::Color(1.0f, 0.0f, 0.0f) * color;
         }
         
         cube_line.emplace_back(ci::Vec3i(ix, y, iz), cube_size_, active, color);

@@ -30,7 +30,7 @@ public:
   void draw() const {
     if (!active_) return;
     
-    ci::gl::color(on_entity_ ? ci::Color(0, 0, 1) + color_ * 0.5f : color_);
+    ci::gl::color(on_entity_ ? ci::Color(0.0f, 0.0f, 1.0f) + color_ * 0.5f : color_);
 
     ci::Vec3f pos(pos_);
     // 上平面が(y = 0)

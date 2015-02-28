@@ -7,6 +7,7 @@
 #include "cinder/Json.h"
 #include "cinder/System.h"
 #include "Defines.hpp"
+#include "Touch.hpp"
 #include "Game.hpp"
 
 
@@ -65,8 +66,9 @@ class CubeParadePrototypeApp : public AppNative {
 
     std::vector<Touch> t = {
       { true,
+        false,
         getElapsedSeconds(),
-        MOUSE_EVENT_ID,
+        Touch::MOUSE_EVENT_ID,
         mouse_pos_, mouse_prev_pos_ }
     };
 
@@ -81,8 +83,9 @@ class CubeParadePrototypeApp : public AppNative {
 
     std::vector<Touch> t = {
       { true,
+        false,
         getElapsedSeconds(),
-        MOUSE_EVENT_ID,
+        Touch::MOUSE_EVENT_ID,
         mouse_pos_, mouse_prev_pos_ }
     };
 
@@ -97,8 +100,9 @@ class CubeParadePrototypeApp : public AppNative {
 
     std::vector<Touch> t = {
       { true,
+        false,
         getElapsedSeconds(),
-        MOUSE_EVENT_ID,
+        Touch::MOUSE_EVENT_ID,
         mouse_pos_, mouse_prev_pos_ }
     };
 
@@ -194,15 +198,16 @@ class CubeParadePrototypeApp : public AppNative {
 #else
         false,
 #endif
-
+        false,
+        
         touch.getTime(),
         touch.getId(),
         touch.getPos(), touch.getPrevPos()
       };
-      touches.push_back(t);
+      touches.push_back(std::move(t));
     }
     
-    return touches;
+    return std::move(touches);
   }
   
 };

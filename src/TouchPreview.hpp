@@ -44,7 +44,7 @@ public:
 
 private:
   void touchBegan(const Message::Connection& connection, Param& params) {
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+    const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {
       if (std::find(std::begin(touches_), std::end(touches_), touch.id) != std::end(touches_)) {
         DOUT << "touch already began." << std::endl;
@@ -56,7 +56,7 @@ private:
   }
 
   void touchMoved(const Message::Connection& connection, Param& params) {
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+    const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {
       auto it = std::find(std::begin(touches_), std::end(touches_), touch.id);
       if (it == std::end(touches_)) {
@@ -69,7 +69,7 @@ private:
   }
 
   void touchEnded(const Message::Connection& connection, Param& params) {
-    const auto* touches = boost::any_cast<const std::vector<Touch>* >(params.at("touch"));
+    const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {
       auto it = std::find(std::begin(touches_), std::end(touches_), touch.id);
       if (it == std::end(touches_)) {
@@ -85,6 +85,8 @@ private:
   
   void display(const Message::Connection& connection, Param& params) {
     display_ = !display_;
+
+    DOUT << "TouchPreview:" << (display_ ? "ON" : "OFF") << std::endl;
   }
 
   

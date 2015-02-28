@@ -5,7 +5,8 @@
 //
 
 #include <memory>
-#include <deque>
+#include <vector>
+#include <boost/range/algorithm_ext/erase.hpp>
 
 
 namespace ngs {
@@ -22,30 +23,20 @@ class EntityHolder {
   // FIXME:typedefするのではなく、テンプレートの引数にしたい
   using EntityPtr = boost::shared_ptr<Entity>;
 
+  std::vector<EntityPtr> entities_;
+
+  
 public:
   void add(EntityPtr entity) {
     entities_.push_back(entity);
   }
 
-  void update() {
-    size_t num = entities_.size();
-    while (num > 0) {
-      // 先頭のを取り出し、有効なら最後尾に追加する
-      auto& entity = entities_.front();
-
-      // 参照で取り出しているので、先に追加
-      if (entity->isActive()) entities_.push_back(entity);
-
-      entities_.pop_front();
-      
-      num -= 1;
-    }
+  void eraseInactiveEntity() {
+    boost::remove_erase_if(entities_,
+                           [](EntityPtr& e) {
+                             return !e->isActive();
+                           });
   }
-
-  
-private:
-  std::deque<EntityPtr> entities_;
-  
 };
 
 }
