@@ -21,7 +21,7 @@ class StageWatcher : public Entity {
   int goal_line_;
 
   bool started_;
-  u_int progress_;
+  int progress_;
   int player_num_;
   
   
@@ -63,7 +63,7 @@ private:
     }
     else {
       // 最大進んだ距離 -> スコア
-      progress_ = std::max(u_int(pos.z), progress_);
+      progress_ = std::max(pos.z, progress_);
       
       if (pos.z == goal_line_) {
         // Finish判定が済めば、もうこのタスクは必要ない

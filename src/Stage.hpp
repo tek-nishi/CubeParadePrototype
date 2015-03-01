@@ -15,7 +15,34 @@
 namespace ngs {
 
 class Stage {
+  Message& message_;
+  Message::ConnectionHolder connection_holder_;
+  
+  const ci::JsonTree& params_;
+  ci::Rand& random_;
 
+  TimerTask<double> time_task_;
+  
+  float width_;
+  float length_;
+
+  float cube_size_;
+  u_int finish_line_;
+  float build_speed_;
+  
+  LapTimer<double> collapse_timer_;
+  size_t collapse_index_;
+
+  LapTimer<double> build_timer_;
+  size_t build_index_;
+  
+  std::deque<std::vector<StageCube> > cubes_;
+  std::deque<std::vector<StageCube> > active_cubes_;
+
+  bool started_;
+  bool finished_;
+
+  
 public:
   Stage(Message& message,
         const ci::JsonTree& params, ci::Rand& random) :
@@ -35,53 +62,27 @@ public:
     u_int width        = params.getValueForKey<u_int>("stage.width");
     u_int length       = params.getValueForKey<u_int>("stage.length");
     u_int start_length = params.getValueForKey<u_int>("stage.startLength");
-    u_int start_line   = params.getValueForKey<u_int>("stage.startLine");
 
     width_  = width * cube_size_;
     length_ = start_length * cube_size_;
-    
-    ci::Color color_a = ci::Color(0.8f, 0.8f, 0.8f);
-    ci::Color color_b = ci::Color(0.6f, 0.6f, 0.6f);
 
-    // FIXME:テスト生成
-    for (u_int iz = 0; iz < length; ++iz) {
-      std::vector<StageCube> cube_line;
-      cube_line.reserve(width);
-      for (u_int ix = 0; ix < width; ++ix) {
-        int y = 0;
-        bool active = true;
+    // Stage構築
+    int offset_z = makeStage(params["stage.start"], 0);
+    int start_line = offset_z - 1;
 
-        if ((iz > start_line) && (iz < finish_line_)) {
-          // 時々高いの
-          if (random_.nextFloat() < 0.05) {
-            y = 1;
-          }
+    offset_z += makeStage(params["stage.data"][0], offset_z);
+    int goal_line = offset_z - 1;
 
-          // 時々非表示
-          if (random_.nextFloat() < 0.05) {
-            active = false;
-          }
-        }
-        
+    offset_z += makeStage(params["stage.goal"], offset_z);
+    int next_start_line = offset_z - 1;
 
-        ci::Color color = color_a;
-        if ((iz == start_line) || (iz == finish_line_)) {
-          color = ci::Color(1.0f, 0.0f, 0.0f) * color;
-        }
-        
-        cube_line.emplace_back(ci::Vec3i(ix, y, iz), cube_size_, active, color);
-        
-        std::swap(color_a, color_b);
-      }
-      cubes_.push_back(std::move(cube_line));
-    }
-
-    // 初期状態のステージを別のコンテナにコピー
+    // Stageから徐々に取り出して使う
     for (u_int iz = 0; iz < start_length; ++iz) {
       active_cubes_.push_back(cubes_[iz]);
     }
     build_index_ = start_length;
 
+    
     connection_holder_.add(message.connect(Msg::UPDATE, this, &Stage::update));
     connection_holder_.add(message.connect(Msg::DRAW, this, &Stage::draw));
 
@@ -94,6 +95,36 @@ public:
     connection_holder_.add(message.connect(Msg::PARADE_FINISH, this, &Stage::finish));
   }
 
+
+  int makeStage(const ci::JsonTree& params, int start_z) {
+    const auto& body = params["body"];
+
+    int z      = start_z;
+    int goal_z = z + body.getNumChildren() - 1;
+
+    for (const auto& body_line : body) {
+      std::vector<StageCube> stage_line;
+      int x = 0;
+      for (const auto& cube : body_line) {
+        int y = cube.getValue<int>();
+        bool active = y >= 0;
+        
+        auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
+                                   : ci::Color(0.6f, 0.6f, 0.6f);
+        if (z == goal_z) {
+          color *= ci::Color(1.0f, 0.0f, 0.0f);
+        }
+
+        stage_line.emplace_back(ci::Vec3i(x, y, z), cube_size_, active, color);
+        x += 1;
+      }
+      cubes_.push_back(std::move(stage_line));
+      z += 1;
+    }
+
+    return body.getNumChildren();
+  }
+  
 
   void update(const Message::Connection& connection, Param& params) {
     {
@@ -212,34 +243,6 @@ private:
   void finish(const Message::Connection& connection, Param& params) {
     finished_ = true;
   }
-
-  
-  Message& message_;
-  Message::ConnectionHolder connection_holder_;
-  
-  const ci::JsonTree& params_;
-  ci::Rand& random_;
-
-  TimerTask<double> time_task_;
-  
-  float width_;
-  float length_;
-
-  float cube_size_;
-  u_int finish_line_;
-  float build_speed_;
-  
-  LapTimer<double> collapse_timer_;
-  size_t   collapse_index_;
-
-  LapTimer<double> build_timer_;
-  size_t   build_index_;
-  
-  std::deque<std::vector<StageCube> > cubes_;
-  std::deque<std::vector<StageCube> > active_cubes_;
-
-  bool started_;
-  bool finished_;
   
 };
 
