@@ -39,6 +39,10 @@ class Stage {
   std::deque<std::vector<StageCube> > cubes_;
   std::deque<std::vector<StageCube> > active_cubes_;
 
+  size_t start_block_length_;
+  size_t goal_block_length_;
+  size_t field_block_length_;
+
   size_t stage_block_length_;
 
   int start_line_;
@@ -88,15 +92,18 @@ private:
     length_ = stage_block_length_ * cube_size_;
 
     // Stage構築
-    int offset_z = makeStage(params_["stage.start"], 0);
+    start_block_length_ = makeStage(params_["stage.start"], 0);
+    int offset_z = start_block_length_;
     start_line_ = offset_z - 1;
 
-    offset_z += makeStage(params_["stage.data"][0], offset_z);
+    field_block_length_ = makeStage(params_["stage.data"][0], offset_z);
+    offset_z += field_block_length_;
     finish_line_ = offset_z - 1;
 
-    offset_z += makeStage(params_["stage.goal"], offset_z);
+    goal_block_length_ = makeStage(params_["stage.goal"], offset_z);
+    offset_z += goal_block_length_;
     next_start_line_ = offset_z - 1;
-
+    
     // Stageから徐々に取り出して使う
     for (u_int iz = 0; iz < stage_block_length_; ++iz) {
       active_cubes_.push_back(cubes_.front());
@@ -259,25 +266,25 @@ private:
     if (collapse_timer_.isActive()) collapse_timer_.setTimer(0.05);
     if (build_timer_.isActive()) build_timer_.setTimer(0.05);
 
-    timer_tasks_.add(3.0, [this]() {
+    timer_tasks_.add(2.5, [this]() {
+        // stageの全消去とGoal地点の生成を待って、次のstageの生成準備
         if (collapse_timer_.isActive()) return;
         if (build_timer_.isActive()) return;
-
-        started_ = false;
         
         collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
-        // collapse_timer_.start();
-        build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
+        build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed") / 3);
         build_timer_.start();
         
         // 次のステージを生成
         start_line_ = next_start_line_;
 
         int offset_z = next_start_line_ + 1;
-        offset_z += makeStage(params_["stage.data"][1], offset_z);
+        field_block_length_ = makeStage(params_["stage.data"][1], offset_z);
+        offset_z += field_block_length_;
         finish_line_ = offset_z - 1;
 
-        offset_z += makeStage(params_["stage.goal"], offset_z);
+        goal_block_length_ = makeStage(params_["stage.goal"], offset_z);
+        offset_z += goal_block_length_;
         next_start_line_ = offset_z - 1;
 
         {
@@ -287,18 +294,31 @@ private:
           };
           message_.signal(Msg::POST_STAGE_INFO, params);
         }
-      });
 
-    tasks_.add([this]() {
-        if (!build_timer_.isActive()) return false;
+        tasks_.add([this]() {
+            // stageが規定サイズ生成されたらstage開始!!
+            if (cubes_.size() ==
+                (goal_block_length_ * 2 + field_block_length_ - stage_block_length_)) {
+              collapse_timer_.start();
+              build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
+              started_ = false;
 
-        if (active_cubes_.size() == stage_block_length_) {
-          collapse_timer_.start();
-          return true;
-        }
+              // start lineの書き換え
+              // TODO:ゲートオープン的な演出
+              auto& cube_line = active_cubes_[goal_block_length_];
+              for (auto& cube : cube_line) {
+                const auto pos = cube.posBlock();
+                cube.posBlock(ci::Vec3i(pos.x, pos.y - 1, pos.z));
+              }
+              
+              return true;
+            }
         
-        return false;
+            return false;
+          });
+        
       });
+
   }
   
 };

@@ -41,6 +41,12 @@ public:
 
 
   const ci::Vec3i& posBlock() const { return pos_block_; }
+
+  void posBlock(const ci::Vec3i& pos) {
+    pos_block_ = pos;
+    pos_ = ci::Vec3f(pos_block_) * size_;
+  }
+  
   const ci::Vec3f& pos() const { return pos_; }
   float size() const { return size_; }
   const ci::Color& color() const { return color_; }
