@@ -51,11 +51,14 @@ public:
     pause_(false)
   {
     message_.signal(Msg::SETUP_GAME, Param());
+    // FIXME:Stageからstartとfinish位置をpostするため、
+    //       gameに必要な準備を終えてからStageを生成する
     message_.signal(Msg::SETUP_STAGE, Param());
 
+    // 最後にPlayerの生成
     {
-      auto& entry_pos = params_["game.entry"];
-      for (auto& pos : entry_pos) {
+      const auto& entry_pos = params_["game.entry"];
+      for (const auto& pos : entry_pos) {
         Param params = {
           { "entry_pos", Json::getVec3<int>(pos) },
         };

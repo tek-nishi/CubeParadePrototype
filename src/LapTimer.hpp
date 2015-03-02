@@ -35,7 +35,7 @@ public:
   }
 
   void clear() { lap_time_ = static_cast<T>(0); }
-  void set(const T time) { goal_time_ = time; }
+  void setTimer(const T time) { goal_time_ = time; }
 
   void pause(const bool pause = true) { paused_ = pause; }
 
@@ -44,6 +44,12 @@ public:
     clear();
   }
 
+  void start() {
+    clear();
+    pause(false);
+  }
+
+  
   T lapseRate() const { return lap_time_ / goal_time_; }
   bool isActive() const { return !paused_; }
   

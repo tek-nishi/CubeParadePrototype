@@ -21,6 +21,8 @@ class StageWatcher : public Entity {
   int finish_line_;
 
   bool started_;
+  bool finished_;
+  
   int progress_;
   int player_num_;
   
@@ -32,6 +34,7 @@ public:
     start_line_(0),
     finish_line_(0),
     started_(false),
+    finished_(false),
     progress_(0),
     player_num_(0)
   { }
@@ -55,6 +58,9 @@ private:
   void getStageInfo(const Message::Connection& connection, Param& params) {
     start_line_ = boost::any_cast<int>(params["start_line"]);
     finish_line_ = boost::any_cast<int>(params["finish_line"]);
+
+    started_  = false;
+    finished_ = false;
   }
   
   void check(const Message::Connection& connection, Param& params) {
@@ -68,13 +74,12 @@ private:
         DOUT << "Parade Start!!" << std::endl;
       }
     }
-    else {
+    else if (!finished_) {
       // 最大進んだ距離 -> スコア
       progress_ = std::max(pos.z, progress_);
       
       if (pos.z == finish_line_) {
-        // Finish判定が済めば、もうこのタスクは必要ない
-        active_ = false;
+        finished_ = true;
 
         message_.signal(Msg::PARADE_FINISH, Param());
 

@@ -61,8 +61,8 @@ private:
 
   void createEntrycube(const Message::Connection& connection, Param& params) {
     const auto& pos   = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
-    float offset_y = boost::any_cast<float>(params["offset_y"]);
-    float active_time = boost::any_cast<float>(params["active_time"]);
+    auto offset_y = boost::any_cast<float>(params["offset_y"]);
+    auto active_time = boost::any_cast<double>(params["active_time"]);
     const auto& color = boost::any_cast<const ci::Color& >(params["color"]);
 
     createAndAddEntity<EntryCube>(params_, pos, offset_y, active_time, color);

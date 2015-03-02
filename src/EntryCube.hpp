@@ -15,8 +15,21 @@
 namespace ngs {
 
 class EntryCube : public Entity {
+  Message& message_;
+  bool active_;
 
+  float size_;
+  
+  ci::Vec3f pos_;
+  ci::Vec3f pos_start_;
+  ci::Vec3f pos_end_;
+  
+  double active_time_;
+  double active_time_end_;
 
+  ci::Color color_;
+
+  
 public:
   explicit EntryCube(Message& message) :
     message_(message),
@@ -27,7 +40,7 @@ public:
   void setup(boost::shared_ptr<EntryCube> obj_sp,
              const ci::JsonTree& params,
              const ci::Vec3i& entry_pos, const float start_offset_y,
-             const float active_time, const ci::Color& color) {
+             const double active_time, const ci::Color& color) {
 
     size_ = params["cube.size"].getValue<float>();
     pos_end_   = ci::Vec3f(entry_pos) * size_;
@@ -46,25 +59,10 @@ public:
   
 
 private:
-  Message& message_;
-  bool active_;
-
-  float size_;
-  
-  ci::Vec3f pos_;
-  ci::Vec3f pos_start_;
-  ci::Vec3f pos_end_;
-  
-  float active_time_;
-  float active_time_end_;
-
-  ci::Color color_;
-
-  
   bool isActive() const override { return active_; }
   
   void update(const Message::Connection& connection, Param& params) {
-    double delta_time = boost::any_cast<double>(params.at("deltaTime"));
+    auto delta_time = boost::any_cast<double>(params.at("deltaTime"));
 
     active_time_ += delta_time;
     pos_.y = pos_start_.y + (pos_end_.y - pos_start_.y) * (active_time_ / active_time_end_);

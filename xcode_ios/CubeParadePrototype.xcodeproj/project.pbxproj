@@ -16,6 +16,8 @@
 		265CEC22C68A4A94828B3993 /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 5874E55C3356475EAB791B01 /* CinderApp_ios.png */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		47D8BDE31AA44EA600812F66 /* Default-736h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47D8BDE11AA44EA600812F66 /* Default-736h@3x.png */; };
+		47D8BDE41AA44EA600812F66 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 47D8BDE21AA44EA600812F66 /* Default.png */; };
 		47EEF64D1A973ACF003DFAFE /* Default-667h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47EEF64B1A973ACF003DFAFE /* Default-667h@2x.png */; };
 		47EEF64E1A973ACF003DFAFE /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 47EEF64C1A973ACF003DFAFE /* Default@2x.png */; };
 		A2ACFD1AEC7F4FF296A1E2B4 /* CubeParadePrototypeApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D16B1425D62948D7A7AD738E /* CubeParadePrototypeApp.cpp */; };
@@ -40,6 +42,8 @@
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		47D8BDE11AA44EA600812F66 /* Default-736h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-736h@3x.png"; sourceTree = "<group>"; };
+		47D8BDE21AA44EA600812F66 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		47EEF64B1A973ACF003DFAFE /* Default-667h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-667h@2x.png"; sourceTree = "<group>"; };
 		47EEF64C1A973ACF003DFAFE /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		5874E55C3356475EAB791B01 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
@@ -131,9 +135,11 @@
 			children = (
 				00748057165D41390024B57A /* assets */,
 				5874E55C3356475EAB791B01 /* CinderApp_ios.png */,
+				47D8BDE21AA44EA600812F66 /* Default.png */,
 				47EEF64C1A973ACF003DFAFE /* Default@2x.png */,
 				F91106039B9C4C0AB144BB82 /* Default-568h@2x.png */,
 				47EEF64B1A973ACF003DFAFE /* Default-667h@2x.png */,
+				47D8BDE11AA44EA600812F66 /* Default-736h@3x.png */,
 				1C480E5AB961445984688AA0 /* Info.plist */,
 			);
 			name = Resources;
@@ -208,7 +214,9 @@
 				47EEF64D1A973ACF003DFAFE /* Default-667h@2x.png in Resources */,
 				47EEF64E1A973ACF003DFAFE /* Default@2x.png in Resources */,
 				265CEC22C68A4A94828B3993 /* CinderApp_ios.png in Resources */,
+				47D8BDE41AA44EA600812F66 /* Default.png in Resources */,
 				D2147E45BA3B4782A89D94AB /* Default-568h@2x.png in Resources */,
+				47D8BDE31AA44EA600812F66 /* Default-736h@3x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
