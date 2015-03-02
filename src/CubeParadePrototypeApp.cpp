@@ -18,7 +18,16 @@ using namespace ci::app;
 namespace ngs {
 
 class CubeParadePrototypeApp : public AppNative {
+  ci::JsonTree params_;
+  std::unique_ptr<Game> game_;
+  bool paused_;
 
+  double elapsed_time_;
+
+  ci::Vec2f mouse_pos_;
+  ci::Vec2f mouse_prev_pos_;
+
+  
   // TIPS:継承元のAppNativeでpublicになっているメンバ関数は
   //      privateになっていて構わない
   
@@ -174,16 +183,6 @@ class CubeParadePrototypeApp : public AppNative {
 
     game_->draw();
   }
-
-
-  ci::JsonTree params_;
-  std::unique_ptr<Game> game_;
-  bool paused_;
-
-  double elapsed_time_;
-
-  ci::Vec2f mouse_pos_;
-  ci::Vec2f mouse_prev_pos_;
 
   
   static std::vector<ngs::Touch> createTouchInfo(const TouchEvent& event) {

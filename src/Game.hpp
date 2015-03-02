@@ -23,18 +23,35 @@
 namespace ngs {
 
 class Game {
+  ci::JsonTree& params_;
+  ci::Rand random_;
+  
+  Message message_;
+
+  EntityHolder  entity_holder_;
+  EntityFactory factory_;
+  
+  Stage stage_;
+  Camera camera_;
+  Light light_;
+
+  // Sound sound_;
+
+  bool pause_;
+
 
 public:
   explicit Game(ci::JsonTree& params) :
     params_(params),
     factory_(message_, params, entity_holder_),
-    camera_(message_, params),
     stage_(message_, params, random_),
+    camera_(message_, params),
     light_(message_, params),
+    // sound_(message_, params),
     pause_(false)
-    // sound_(message_, params)
   {
     message_.signal(Msg::SETUP_GAME, Param());
+    message_.signal(Msg::SETUP_STAGE, Param());
 
     {
       auto& entry_pos = params_["game.entry"];
@@ -45,16 +62,6 @@ public:
         message_.signal(Msg::CREATE_CUBEPLAYER, params);
       }
     }
-
-
-#if 0
-    {
-      Param params = {
-        { "name", std::string("sample_1") }
-      };
-      message_.signal(Msg::SOUND_PLAY, params);
-    }
-#endif
   }
 
   void resize() {
@@ -85,37 +92,6 @@ public:
     if (charactor == 'T') {
       message_.signal(Msg::TOUCHPREVIEW_TOGGLE, Param());
     }
-
-#if 0
-    if (keycode == ci::app::KeyEvent::KEY_a) {
-      Param params = {
-        { "name", std::string("sample_1") }
-      };
-      message_.signal(Msg::SOUND_PLAY, params);
-    }
-    else if (keycode == ci::app::KeyEvent::KEY_s) {
-      Param params = {
-        { "name", std::string("sample_2") }
-      };
-      message_.signal(Msg::SOUND_PLAY, params);
-    }
-    else if (keycode == ci::app::KeyEvent::KEY_d) {
-      Param params = {
-        { "name", std::string("sample_3") }
-      };
-      message_.signal(Msg::SOUND_PLAY, params);
-    }
-    else if (keycode == ci::app::KeyEvent::KEY_f) {
-      Param params = {
-        { "category", std::string("se") }
-      };
-      message_.signal(Msg::SOUND_STOP, params);
-    }
-    else if (keycode == ci::app::KeyEvent::KEY_g) {
-      Param params;
-      message_.signal(Msg::SOUND_STOP, params);
-    }
-#endif
   }
   
   
@@ -150,6 +126,8 @@ public:
     
     message_.signal(Msg::LIGHT_ENABLE, Param());
 
+    // FIXME: ci::gl::colorで色を決める
+    //        ci::gl::Materialを使わない
     glEnable(GL_COLOR_MATERIAL);
 #if !(TARGET_OS_IPHONE)
     // OpenGL ESは未対応
@@ -184,23 +162,6 @@ private:
   // TIPS:コピー不可
   Game(const Game&) = delete;
   Game& operator=(const Game&) = delete;
-
-  ci::JsonTree& params_;
-  ci::Rand random_;
-  
-  Message message_;
-
-  EntityHolder entity_holder_;
-  EntityFactory factory_;
-  
-  Camera camera_;
-  Stage stage_;
-  Light light_;
-
-  bool pause_;
-
-  // Sound sound_;
-
 
   
   void signalTouchMessage(const int msg, std::vector<Touch>& touches) {

@@ -18,7 +18,7 @@ class StageWatcher : public Entity {
   bool active_;
 
   int start_line_;
-  int goal_line_;
+  int finish_line_;
 
   bool started_;
   int progress_;
@@ -29,6 +29,8 @@ public:
   explicit StageWatcher(Message& message) :
     message_(message),
     active_(true),
+    start_line_(0),
+    finish_line_(0),
     started_(false),
     progress_(0),
     player_num_(0)
@@ -37,8 +39,7 @@ public:
   void setup(boost::shared_ptr<StageWatcher> obj_sp,
              const ci::JsonTree& params) {
 
-    start_line_ = params["startLine"].getValue<int>();
-    goal_line_  = params["finishLine"].getValue<int>();
+    message_.connect(Msg::POST_STAGE_INFO, obj_sp, &StageWatcher::getStageInfo);
 
     message_.connect(Msg::CUBE_PLAYER_POS, obj_sp, &StageWatcher::check);
     message_.connect(Msg::CUBE_PLAYER_DEAD, obj_sp, &StageWatcher::deactivate);
@@ -50,6 +51,12 @@ public:
 private:
   bool isActive() const override { return active_; }
 
+  
+  void getStageInfo(const Message::Connection& connection, Param& params) {
+    start_line_ = boost::any_cast<int>(params["start_line"]);
+    finish_line_ = boost::any_cast<int>(params["finish_line"]);
+  }
+  
   void check(const Message::Connection& connection, Param& params) {
     const auto& pos = boost::any_cast<const ci::Vec3i& >(params["block_pos"]);
     if (!started_) {
@@ -65,7 +72,7 @@ private:
       // 最大進んだ距離 -> スコア
       progress_ = std::max(pos.z, progress_);
       
-      if (pos.z == goal_line_) {
+      if (pos.z == finish_line_) {
         // Finish判定が済めば、もうこのタスクは必要ない
         active_ = false;
 

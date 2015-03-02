@@ -15,7 +15,58 @@
 namespace ngs {
 
 class CubePlayer : public Entity {
+  Message& message_;
+  bool active_;
 
+  u_int id_;
+  
+  ci::Vec3i pos_block_;
+  ci::Vec3f pos_;
+  ci::Quatf rot_;
+
+  float size_;
+  ci::Color color_;
+  ci::Vec3f speed_;
+
+  bool   picking_;
+  u_int  picking_id_;
+  bool   picking_timestamp_record_;
+  double picking_timestamp_;
+
+  float move_threshold_;
+  float speed_rate_;
+  int   max_move_speed_;
+  std::vector<float> speed_table_;
+
+  ci::Vec3f picking_plane_;
+  ci::Vec3f picking_pos_;
+  ci::Vec3i move_pos_block_;
+
+  
+  enum {
+    MOVE_NONE = -1,
+
+    MOVE_UP,
+    MOVE_DOWN,
+    MOVE_LEFT,
+    MOVE_RIGHT
+  };
+
+  bool  now_rotation_;
+  bool  begin_rotation_;
+  int   move_direction_;
+  u_int move_speed_;
+
+  ci::Quatf move_rotate_;
+  ci::Quatf move_rotate_start_;
+  ci::Quatf move_rotate_end_;
+  ci::Vec3f rotate_pivpot_;
+
+  float move_rotate_time_;
+  float move_rotate_time_end_;
+  float move_rotate_time_end_max_;
+
+  
 public:
   explicit CubePlayer(Message& message) :
     message_(message),
@@ -447,56 +498,6 @@ private:
   }
 
   
-  Message& message_;
-  bool active_;
-
-  u_int id_;
-  
-  ci::Vec3i pos_block_;
-  ci::Vec3f pos_;
-  ci::Quatf rot_;
-
-  float size_;
-  ci::Color color_;
-  ci::Vec3f speed_;
-
-  bool   picking_;
-  u_int  picking_id_;
-  bool   picking_timestamp_record_;
-  double picking_timestamp_;
-
-  float move_threshold_;
-  float speed_rate_;
-  int   max_move_speed_;
-  std::vector<float> speed_table_;
-
-  ci::Vec3f picking_plane_;
-  ci::Vec3f picking_pos_;
-  ci::Vec3i move_pos_block_;
-
-  
-  enum {
-    MOVE_NONE = -1,
-
-    MOVE_UP,
-    MOVE_DOWN,
-    MOVE_LEFT,
-    MOVE_RIGHT
-  };
-
-  bool  now_rotation_;
-  bool  begin_rotation_;
-  int   move_direction_;
-  u_int move_speed_;
-
-  ci::Quatf move_rotate_;
-  ci::Quatf move_rotate_start_;
-  ci::Quatf move_rotate_end_;
-  ci::Vec3f rotate_pivpot_;
-
-  float move_rotate_time_;
-  float move_rotate_time_end_;
-  float move_rotate_time_end_max_;
   
 };
 

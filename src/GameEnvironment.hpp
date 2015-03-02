@@ -26,6 +26,9 @@ enum Msg {
   KEY_DOWN,
 
   SETUP_GAME,
+
+  // Stage生成
+  SETUP_STAGE,
   
   PARADE_START,
   PARADE_FINISH,
@@ -33,12 +36,14 @@ enum Msg {
   // 各種情報を収集
   GATHER_INFORMATION,
 
-  // Playerの位置が確定した
+  // 確定したPlayerの位置をbroadcast
   CUBE_PLAYER_POS,
   
   CUBE_PLAYER_DEAD,
 
-  CUBE_STAGE_INFO,
+  // 開始位置、ゴール位置などのStage情報をbroadcast
+  POST_STAGE_INFO,
+  
   CUBE_STAGE_HEIGHT,
 
   // カメラ位置を決めるための情報収集

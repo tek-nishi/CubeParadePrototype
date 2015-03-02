@@ -21,13 +21,12 @@ class Stage {
   const ci::JsonTree& params_;
   ci::Rand& random_;
 
-  TimerTask<double> time_task_;
+  TimerTask<double> tasks_;
   
   float width_;
   float length_;
 
   float cube_size_;
-  u_int finish_line_;
   float build_speed_;
   
   LapTimer<double> collapse_timer_;
@@ -38,6 +37,10 @@ class Stage {
   
   std::deque<std::vector<StageCube> > cubes_;
   std::deque<std::vector<StageCube> > active_cubes_;
+
+  int start_line_;
+  int finish_line_;
+  int next_start_line_;
 
   bool started_;
   bool finished_;
@@ -50,43 +53,22 @@ public:
     params_(params),
     random_(random),
     cube_size_(params.getValueForKey<float>("cube.size")),
-    finish_line_(params.getValueForKey<u_int>("stage.finishLine")),
     collapse_timer_(params.getValueForKey<float>("stage.collapseSpeed")),
     collapse_index_(0),
     build_timer_(params.getValueForKey<float>("stage.buildSpeed")),
     build_index_(0),
     build_speed_(params.getValueForKey<float>("stage.buildSpeed")),
+    start_line_(0),
+    finish_line_(0),
+    next_start_line_(0),
     started_(false),
     finished_(false)
   {
-    u_int width        = params.getValueForKey<u_int>("stage.width");
-    u_int length       = params.getValueForKey<u_int>("stage.length");
-    u_int start_length = params.getValueForKey<u_int>("stage.startLength");
-
-    width_  = width * cube_size_;
-    length_ = start_length * cube_size_;
-
-    // Stage構築
-    int offset_z = makeStage(params["stage.start"], 0);
-    int start_line = offset_z - 1;
-
-    offset_z += makeStage(params["stage.data"][0], offset_z);
-    int goal_line = offset_z - 1;
-
-    offset_z += makeStage(params["stage.goal"], offset_z);
-    int next_start_line = offset_z - 1;
-
-    // Stageから徐々に取り出して使う
-    for (u_int iz = 0; iz < start_length; ++iz) {
-      active_cubes_.push_back(cubes_[iz]);
-    }
-    build_index_ = start_length;
-
-    
     connection_holder_.add(message.connect(Msg::UPDATE, this, &Stage::update));
     connection_holder_.add(message.connect(Msg::DRAW, this, &Stage::draw));
 
-    connection_holder_.add(message.connect(Msg::CUBE_STAGE_INFO, this, &Stage::info));
+    connection_holder_.add(message.connect(Msg::SETUP_STAGE, this, &Stage::setup));
+    
     connection_holder_.add(message.connect(Msg::CUBE_STAGE_HEIGHT, this, &Stage::stageHight));
     
     connection_holder_.add(message.connect(Msg::CAMERAVIEW_INFO, this, &Stage::cameraviewInfo));
@@ -95,7 +77,42 @@ public:
     connection_holder_.add(message.connect(Msg::PARADE_FINISH, this, &Stage::finish));
   }
 
+  
+private:
+  void setup(const Message::Connection& connection, Param& params) {
+    u_int width        = params_.getValueForKey<u_int>("stage.width");
+    u_int length       = params_.getValueForKey<u_int>("stage.length");
+    u_int start_length = params_.getValueForKey<u_int>("stage.startLength");
 
+    width_  = width * cube_size_;
+    length_ = start_length * cube_size_;
+
+    // Stage構築
+    int offset_z = makeStage(params_["stage.start"], 0);
+    start_line_ = offset_z - 1;
+
+    offset_z += makeStage(params_["stage.data"][0], offset_z);
+    finish_line_ = offset_z - 1;
+
+    offset_z += makeStage(params_["stage.goal"], offset_z);
+    next_start_line_ = offset_z - 1;
+
+    // Stageから徐々に取り出して使う
+    for (u_int iz = 0; iz < start_length; ++iz) {
+      active_cubes_.push_back(cubes_[iz]);
+    }
+    build_index_ = start_length;
+
+    {
+      Param params = {
+        { "start_line", start_line_ },
+        { "finish_line", finish_line_ },
+      };
+      message_.signal(Msg::POST_STAGE_INFO, params);
+    }
+  }
+
+  
   int makeStage(const ci::JsonTree& params, int start_z) {
     const auto& body = params["body"];
 
@@ -107,10 +124,13 @@ public:
       int x = 0;
       for (const auto& cube : body_line) {
         int y = cube.getValue<int>();
+        // 高さがマイナス -> ブロックなし
         bool active = y >= 0;
-        
+
+        // FIXME:互い違いの色
         auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
                                    : ci::Color(0.6f, 0.6f, 0.6f);
+        // 終端がスタート & ゴールライン
         if (z == goal_z) {
           color *= ci::Color(1.0f, 0.0f, 0.0f);
         }
@@ -142,7 +162,7 @@ public:
     
     double delta_time = boost::any_cast<double>(params.at("deltaTime"));
 
-    time_task_(delta_time);
+    tasks_(delta_time);
     
     if (collapse_timer_(delta_time)) {
       // 一定時間ごとにステージ端が崩壊
@@ -185,7 +205,7 @@ public:
       // TIPS:メンバ変数をキャプチャして使う場合は一旦変数にコピー
       // ステージの追加は追加演出の後に行うので、タスクに積んでおく
       size_t build_index = build_index_;
-      time_task_.add(build_speed_, [this, build_index]() {
+      tasks_.add(build_speed_, [this, build_index]() {
           active_cubes_.push_back(cubes_[build_index]);
         });
 
@@ -205,12 +225,6 @@ public:
   }
 
   
-private:
-  void info(const Message::Connection& connection, Param& params) {
-    // FIXME:コピーはダメです
-    params["info"] = &active_cubes_;
-  }
-
   void stageHight(const Message::Connection& connection, Param& params) {
     params["is_cube"] = false;
     
