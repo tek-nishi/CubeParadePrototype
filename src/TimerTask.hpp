@@ -4,9 +4,8 @@
 // 時間経過で関数オブジェクトを実行
 //
 
-#include <vector>
+#include <list>
 #include <functional>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 
 namespace ngs {
@@ -23,7 +22,7 @@ class TimerTask {
     {}
   };
 
-  std::vector<Object> objects_;
+  std::list<Object> objects_;
 
   
   TimerTask(const TimerTask&) = delete;
@@ -42,16 +41,16 @@ public:
   }
   
   void operator()(const T delta_time) {
-    // TIPS:コンテナに対してremoveとeraseを同時に処理
-    boost::remove_erase_if(objects_,
-                           [delta_time](Object& obj) {
-                             obj.fire_time -= delta_time;
-                             if (obj.fire_time <= 0.0f) {
-                               obj.proc();
-                               return true;
-                             }
-                             return false;
-                           });
+    for (auto it = std::begin(objects_); it != std::end(objects_); /* do nothing */) {
+      it->fire_time -= delta_time;
+      if (it->fire_time <= static_cast<T>(0)) {
+        it->proc();
+        it = objects_.erase(it);
+      }
+      else {
+        ++it;
+      }
+    }
   }
   
 };

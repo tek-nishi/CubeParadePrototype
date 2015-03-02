@@ -5,9 +5,8 @@
 // 関数オブジェクトがtrueを返すとタスクから削除する
 //
 
-#include <vector>
+#include <list>
 #include <functional>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 namespace ngs {
 
@@ -20,7 +19,8 @@ class Task {
     {}
   };
 
-  std::vector<Object> objects_;
+  // 実行中に追加されることもあるのでvectorではなくlistを使う
+  std::list<Object> objects_;
 
   
   Task(const Task&) = delete;
@@ -39,11 +39,12 @@ public:
   }
   
   void operator()() {
-    // TIPS:コンテナに対してremoveとeraseを同時に処理
-    boost::remove_erase_if(objects_,
-                           [](Object& obj) {
-                             return obj.proc();
-                           });
+    // FIXME:task実行中にtaskへ追加が行われることがあるので
+    //       この実装になっている
+    for (auto it = std::begin(objects_); it != std::end(objects_); /* do nothing */) {
+      if (it->proc()) it = objects_.erase(it);
+      else            ++it;
+    }
   }
   
 };
