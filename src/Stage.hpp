@@ -73,9 +73,6 @@ public:
   void setup(boost::shared_ptr<Stage> obj_sp) {
     cube_size_ = params_.getValueForKey<float>("cube.size");
 
-    collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
-    build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
-
     build_speed_        = params_.getValueForKey<double>("stage.buildSpeed");
     stage_block_length_ = params_.getValueForKey<size_t>("stage.startLength");
 
@@ -85,6 +82,7 @@ public:
     message_.connect(Msg::DRAW, obj_sp, &Stage::draw);
 
     message_.connect(Msg::SETUP_STAGE, obj_sp, &Stage::setupStage);
+    message_.connect(Msg::RESET_STAGE, obj_sp, &Stage::inactive);
     
     message_.connect(Msg::CUBE_STAGE_HEIGHT, obj_sp, &Stage::stageHight);
     
@@ -100,6 +98,9 @@ private:
 
 
   void setupStage(const Message::Connection& connection, Param& params) {
+    collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
+    build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
+
     u_int width  = params_.getValueForKey<u_int>("stage.width");
     u_int length = params_.getValueForKey<u_int>("stage.length");
 
@@ -134,39 +135,9 @@ private:
     }
   }
 
-  
-  int makeStage(const ci::JsonTree& params, const int start_z, bool finish_line = true) {
-    const auto& body = params["body"];
-
-    int z      = start_z;
-    int goal_z = z + body.getNumChildren() - 1;
-
-    for (const auto& body_line : body) {
-      std::vector<StageCube> stage_line;
-      int x = 0;
-      for (const auto& cube : body_line) {
-        int y = cube.getValue<int>();
-        // 高さがマイナス -> ブロックなし
-        bool active = y >= 0;
-
-        // FIXME:互い違いの色
-        auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
-                                   : ci::Color(0.6f, 0.6f, 0.6f);
-        // 終端がスタート & ゴールライン
-        if (finish_line && (z == goal_z)) {
-          color *= ci::Color(1.0f, 0.0f, 0.0f);
-        }
-
-        stage_line.emplace_back(ci::Vec3i(x, y, z), cube_size_, active, color);
-        x += 1;
-      }
-      cubes_.push_back(std::move(stage_line));
-      z += 1;
-    }
-
-    return body.getNumChildren();
+  void inactive(const Message::Connection& connection, Param& params) {
+    active_ = false;
   }
-  
 
   void update(const Message::Connection& connection, Param& params) {
     {
@@ -244,7 +215,6 @@ private:
       }
     }
   }
-
   
   void stageHight(const Message::Connection& connection, Param& params) {
     params["is_cube"] = false;
@@ -347,8 +317,41 @@ private:
       });
   }
 
+
   bool isFinalStage(size_t current_stage) const {
     return current_stage == (stage_num_ - 1);
+  }
+  
+  int makeStage(const ci::JsonTree& params, const int start_z, bool finish_line = true) {
+    const auto& body = params["body"];
+
+    int z      = start_z;
+    int goal_z = z + body.getNumChildren() - 1;
+
+    for (const auto& body_line : body) {
+      std::vector<StageCube> stage_line;
+      int x = 0;
+      for (const auto& cube : body_line) {
+        int y = cube.getValue<int>();
+        // 高さがマイナス -> ブロックなし
+        bool active = y >= 0;
+
+        // FIXME:互い違いの色
+        auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
+                                   : ci::Color(0.6f, 0.6f, 0.6f);
+        // 終端がスタート & ゴールライン
+        if (finish_line && (z == goal_z)) {
+          color *= ci::Color(1.0f, 0.0f, 0.0f);
+        }
+
+        stage_line.emplace_back(ci::Vec3i(x, y, z), cube_size_, active, color);
+        x += 1;
+      }
+      cubes_.push_back(std::move(stage_line));
+      z += 1;
+    }
+
+    return body.getNumChildren();
   }
   
 };

@@ -23,6 +23,7 @@ enum Msg {
 
   // Stage生成
   SETUP_STAGE,
+  RESET_STAGE,
   
   PARADE_START,
   PARADE_FINISH,

@@ -54,11 +54,18 @@ public:
     
     message_.connect(Msg::UPDATE, obj_sp, &FallCube::update);
     message_.connect(Msg::DRAW, obj_sp, &FallCube::draw);
+
+    message_.connect(Msg::RESET_STAGE, obj_sp, &FallCube::inactive);
   }
   
 
 private:
   bool isActive() const override { return active_; }
+
+
+  void inactive(const Message::Connection& connection, Param& params) {
+    active_ = false;
+  }
   
   void update(const Message::Connection& connection, Param& params) {
     double delta_time = boost::any_cast<double>(params.at("deltaTime"));

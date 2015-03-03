@@ -50,6 +50,8 @@ public:
     message_.connect(Msg::STAGE_POS, obj_sp, &Light::stagePos);
     message_.connect(Msg::LIGHT_ENABLE, obj_sp, &Light::enable);
     message_.connect(Msg::LIGHT_DISABLE, obj_sp, &Light::disable);
+
+    message_.connect(Msg::RESET_STAGE, obj_sp, &Light::inactive);
   }
 
 
@@ -74,6 +76,10 @@ private:
 
   void disable(const Message::Connection& connection, Param& param) {
     light_.disable();
+  }
+
+  void inactive(const Message::Connection& connection, Param& param) {
+    active_ = false;
   }
   
 };

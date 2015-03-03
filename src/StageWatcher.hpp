@@ -45,7 +45,7 @@ public:
     message_.connect(Msg::POST_STAGE_INFO, obj_sp, &StageWatcher::getStageInfo);
 
     message_.connect(Msg::CUBE_PLAYER_POS, obj_sp, &StageWatcher::check);
-    message_.connect(Msg::CUBE_PLAYER_DEAD, obj_sp, &StageWatcher::deactivate);
+    message_.connect(Msg::CUBE_PLAYER_DEAD, obj_sp, &StageWatcher::inactive);
 
     message_.connect(Msg::CREATE_CUBEPLAYER, obj_sp, &StageWatcher::createdPlayer);
   }
@@ -88,7 +88,7 @@ private:
     }
   }
 
-  void deactivate(const Message::Connection& connection, Param& params) {
+  void inactive(const Message::Connection& connection, Param& params) {
     active_ = false;
     DOUT << "Parade Finish. score:" << progress_ << std::endl;
   }

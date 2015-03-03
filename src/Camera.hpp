@@ -10,11 +10,32 @@
 namespace ngs {
 
 class Camera {
+  Message& message_;
+  Message::ConnectionHolder connection_holder_;
+  const ci::JsonTree& params_;
 
+  ci::CameraPersp camera_;
+  
+  ci::Vec3f eye_pos_;
+  ci::Vec3f interest_pos_;
 
+  ci::Vec3f target_eye_pos_;
+  ci::Vec3f target_interest_pos_;
+
+  float fov_;
+  float near_;
+
+  float center_rate_;
+  float bottom_rate_;
+
+  float ease_cube_stop_;
+  float ease_cube_move_;
+  
+  
 public:
   Camera(Message& message, const ci::JsonTree& params) :
     message_(message),
+    params_(params),
     camera_(ci::app::getWindowWidth(), ci::app::getWindowHeight(), 
             params.getValueForKey<float>("camera.fov"),
             params.getValueForKey<float>("camera.nearZ"),
@@ -34,6 +55,7 @@ public:
     camera_.setCenterOfInterestPoint(interest_pos_);
     
     connection_holder_.add(message.connect(Msg::POST_UPDATE, this, &Camera::update));
+    connection_holder_.add(message.connect(Msg::RESET_STAGE, this, &Camera::reset));
   }
 
 
@@ -77,28 +99,6 @@ public:
   
   
 private:
-  Message& message_;
-  Message::ConnectionHolder connection_holder_;
-
-  ci::CameraPersp camera_;
-  
-  ci::Vec3f eye_pos_;
-  ci::Vec3f interest_pos_;
-
-  ci::Vec3f target_eye_pos_;
-  ci::Vec3f target_interest_pos_;
-
-  float fov_;
-  float near_;
-
-  float center_rate_;
-  float bottom_rate_;
-
-  float ease_cube_stop_;
-  float ease_cube_move_;
-
-  
-  
   void update(const Message::Connection& connection, Param& param) {
     {
       Param params = {
@@ -136,6 +136,14 @@ private:
       auto interest_pos = camera_.getCenterOfInterestPoint();
       camera_.setCenterOfInterestPoint(interest_pos + (target_interest_pos_ - interest_pos) * easing_rate);
     }
+  }
+
+  void reset(const Message::Connection& connection, Param& param) {
+    eye_pos_      = Json::getVec3<float>(params_["camera.eyePos"]);
+    interest_pos_ = Json::getVec3<float>(params_["camera.interestPos"]);
+
+    camera_.setEyePoint(eye_pos_);
+    camera_.setCenterOfInterestPoint(interest_pos_);
   }
   
 };

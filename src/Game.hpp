@@ -16,6 +16,7 @@
 #include "Camera.hpp"
 #include "Sound.hpp"
 #include "EntityFactory.hpp"
+#include "TimerTask.hpp"
 
 
 namespace ngs {
@@ -33,6 +34,8 @@ class Game {
 
   // Sound sound_;
 
+  TimerTask<double> timer_tasks_;
+
   bool pause_;
 
 
@@ -44,18 +47,8 @@ public:
     // sound_(message_, params),
     pause_(false)
   {
-    message_.signal(Msg::SETUP_GAME, Param());
-    // FIXME:Stageからstartとfinish位置をpostするため、
-    //       gameに必要な準備を終えてからStageを生成する
-    message_.signal(Msg::SETUP_STAGE, Param());
-
-    // 最後にPlayerの生成
-    for (const auto& pos : params_["game.entry"]) {
-      Param params = {
-        { "entry_pos", Json::getVec3<int>(pos) },
-      };
-      message_.signal(Msg::CREATE_CUBEPLAYER, params);
-    }
+    message_.connect(Msg::CUBE_PLAYER_DEAD, this, &Game::retryStage);
+    setup();
   }
 
   void resize() {
@@ -92,6 +85,8 @@ public:
   void update(const double delta_time) {
     if (pause_) return;
 
+    timer_tasks_(delta_time);
+    
     // FIXME:VS2013 update1はboost::anyの初期化リストにコンテナの右辺値を入れると
     //       実行時エラーになる??
     auto player_info = std::vector<PlayerInfo>();
@@ -169,6 +164,31 @@ private:
       { "handled", false }
     };
     message_.signal(msg, params);
+  }
+
+
+  void retryStage(const Message::Connection& connection, Param& params) {
+    timer_tasks_.add(3.0, [this]() {
+        message_.signal(Msg::RESET_STAGE, Param());
+        // この場でentityを破棄
+        entity_holder_.eraseInactiveEntity();
+        setup();
+      });
+  }
+
+  void setup() {
+    message_.signal(Msg::SETUP_GAME, Param());
+    // FIXME:Stageからstartとfinish位置をpostするため、
+    //       gameに必要な準備を終えてからStageを生成する
+    message_.signal(Msg::SETUP_STAGE, Param());
+
+    // 最後にPlayerの生成
+    for (const auto& pos : params_["game.entry"]) {
+      Param params = {
+        { "entry_pos", Json::getVec3<int>(pos) },
+      };
+      message_.signal(Msg::CREATE_CUBEPLAYER, params);
+    }
   }
   
 };
