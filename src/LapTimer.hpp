@@ -15,6 +15,12 @@ class LapTimer {
   
 
 public:
+  LapTimer() :
+    lap_time_(static_cast<T>(0)),
+    goal_time_(static_cast<T>(1)),
+    paused_(false)
+  { }
+  
   explicit LapTimer(const T goal_time) :
     lap_time_(static_cast<T>(0)),
     goal_time_(goal_time),

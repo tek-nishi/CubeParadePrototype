@@ -11,27 +11,25 @@ namespace ngs {
 
 class TouchPreview : public Entity {
   Message& message_;
+  const ci::JsonTree& params_;
+
   bool active_;
 
   std::vector<Touch> touches_;
   bool display_;
 
 
-  bool isActive() const override { return active_; }
-
-
 public:
-  explicit TouchPreview(Message& message) :
+  explicit TouchPreview(Message& message, ci::JsonTree& params) :
     message_(message),
+    params_(params),
     active_(true),
     display_(false)
   { }
 
   
   // FIXME:コンストラクタではshared_ptrが決まっていないための措置
-  void setup(boost::shared_ptr<TouchPreview> obj_sp,
-             const ci::JsonTree& params) {
-    
+  void setup(boost::shared_ptr<TouchPreview> obj_sp) {
     message_.connect(Msg::TOUCH_BEGAN, obj_sp, &TouchPreview::touchBegan);
     message_.connect(Msg::TOUCH_MOVED, obj_sp, &TouchPreview::touchMoved);
     message_.connect(Msg::TOUCH_ENDED, obj_sp, &TouchPreview::touchEnded);
@@ -43,6 +41,9 @@ public:
 
 
 private:
+  bool isActive() const override { return active_; }
+
+  
   void touchBegan(const Message::Connection& connection, Param& params) {
     const auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
     for (const auto& touch : *touches) {

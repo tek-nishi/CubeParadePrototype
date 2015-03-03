@@ -16,6 +16,8 @@ namespace ngs {
 
 class EntryCube : public Entity {
   Message& message_;
+  const ci::JsonTree& params_;
+  
   bool active_;
 
   float size_;
@@ -31,18 +33,18 @@ class EntryCube : public Entity {
 
   
 public:
-  explicit EntryCube(Message& message) :
+  explicit EntryCube(Message& message, ci::JsonTree& params) :
     message_(message),
+    params_(params),
     active_(true),
     active_time_(0.0)
   { }
 
   void setup(boost::shared_ptr<EntryCube> obj_sp,
-             const ci::JsonTree& params,
              const ci::Vec3i& entry_pos, const float start_offset_y,
              const double active_time, const ci::Color& color) {
 
-    size_ = params["cube.size"].getValue<float>();
+    size_ = params_["cube.size"].getValue<float>();
     pos_end_   = ci::Vec3f(entry_pos) * size_;
     pos_start_ = pos_end_;
     pos_start_.y += start_offset_y;

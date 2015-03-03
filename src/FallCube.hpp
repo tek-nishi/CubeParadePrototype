@@ -15,35 +15,9 @@
 namespace ngs {
 
 class FallCube : public Entity {
-
-
-public:
-  explicit FallCube(Message& message) :
-    message_(message),
-    active_(true),
-    vec_(ci::Vec3f::zero())
-  { }
-
-  void setup(boost::shared_ptr<FallCube> obj_sp,
-             const ci::JsonTree& params,
-             const ci::Vec3i& entry_pos, const float speed, const ci::Color& color) {
-
-    size_ = params["cube.size"].getValue<float>();
-    pos_  = ci::Vec3f(entry_pos) * size_;
-
-    color_ = color;
-
-    active_time_ = params["fallCube.activeTime"].getValue<float>();
-    acc_ = Json::getVec3<float>(params["fallCube.acc"]);
-    acc_.y = acc_.y * speed;
-    
-    message_.connect(Msg::UPDATE, obj_sp, &FallCube::update);
-    message_.connect(Msg::DRAW, obj_sp, &FallCube::draw);
-  }
-  
-
-private:
   Message& message_;
+  const ci::JsonTree& params_;
+
   bool active_;
 
   float size_;
@@ -58,6 +32,32 @@ private:
   ci::Color color_;
 
   
+public:
+  explicit FallCube(Message& message, ci::JsonTree& params) :
+    message_(message),
+    params_(params),
+    active_(true),
+    vec_(ci::Vec3f::zero())
+  { }
+
+  void setup(boost::shared_ptr<FallCube> obj_sp,
+             const ci::Vec3i& entry_pos, const float speed, const ci::Color& color) {
+
+    size_ = params_["cube.size"].getValue<float>();
+    pos_  = ci::Vec3f(entry_pos) * size_;
+
+    color_ = color;
+
+    active_time_ = params_["fallCube.activeTime"].getValue<float>();
+    acc_ = Json::getVec3<float>(params_["fallCube.acc"]);
+    acc_.y = acc_.y * speed;
+    
+    message_.connect(Msg::UPDATE, obj_sp, &FallCube::update);
+    message_.connect(Msg::DRAW, obj_sp, &FallCube::draw);
+  }
+  
+
+private:
   bool isActive() const override { return active_; }
   
   void update(const Message::Connection& connection, Param& params) {

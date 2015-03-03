@@ -16,6 +16,8 @@ namespace ngs {
 
 class CubePlayer : public Entity {
   Message& message_;
+  const ci::JsonTree& params_;
+
   bool active_;
 
   u_int id_;
@@ -68,8 +70,9 @@ class CubePlayer : public Entity {
 
   
 public:
-  explicit CubePlayer(Message& message) :
+  explicit CubePlayer(Message& message, ci::JsonTree& params) :
     message_(message),
+    params_(params),
     active_(true),
     id_(getUniqueNumber()),
     picking_(false),
@@ -80,20 +83,20 @@ public:
 
   // FIXME:コンストラクタではshared_ptrが決まっていないための措置
   void setup(boost::shared_ptr<CubePlayer> obj_sp,
-             const ci::JsonTree& params, const ci::Vec3i& entry_pos_block) {
+             const ci::Vec3i& entry_pos_block) {
 
     rot_       = ci::Quatf::identity();
-    size_      = params["cube.size"].getValue<float>();
+    size_      = params_["cube.size"].getValue<float>();
     pos_block_ = entry_pos_block;
     pos_       = ci::Vec3f(entry_pos_block) * size_;
-    color_     = Json::getColor<float>(params["cubePlayer.color"]);
+    color_     = Json::getColor<float>(params_["cubePlayer.color"]);
     
-    move_rotate_time_end_max_ = params["cubePlayer.moveRotateTime"].getValue<float>();
+    move_rotate_time_end_max_ = params_["cubePlayer.moveRotateTime"].getValue<float>();
     
-    move_threshold_ = params["cubePlayer.moveThreshold"].getValue<float>();
-    speed_rate_     = params["cubePlayer.speedRate"].getValue<float>();
-    max_move_speed_ = params["cubePlayer.maxMoveSpeed"].getValue<int>();
-    speed_table_ = Json::getArray<float>(params["cubePlayer.moveSpeed"]);
+    move_threshold_ = params_["cubePlayer.moveThreshold"].getValue<float>();
+    speed_rate_     = params_["cubePlayer.speedRate"].getValue<float>();
+    max_move_speed_ = params_["cubePlayer.maxMoveSpeed"].getValue<int>();
+    speed_table_ = Json::getArray<float>(params_["cubePlayer.moveSpeed"]);
     
     // 必要なメッセージを受け取るように指示
     // TIPS:オブジェクトが消滅すると自動的に解除される

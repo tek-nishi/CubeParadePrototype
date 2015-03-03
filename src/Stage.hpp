@@ -5,8 +5,10 @@
 //
 
 #include "GameEnvironment.hpp"
+#include <deque>
 #include <vector>
 #include "Message.hpp"
+#include "Entity.hpp"
 #include "StageCube.hpp"
 #include "Task.hpp"
 #include "TimerTask.hpp"
@@ -15,12 +17,12 @@
 
 namespace ngs {
 
-class Stage {
+class Stage : public Entity {
   Message& message_;
-  Message::ConnectionHolder connection_holder_;
-  
   const ci::JsonTree& params_;
-  ci::Rand& random_;
+  ci::Rand random_;
+
+  bool active_;
 
   Task tasks_;
   TimerTask<double> timer_tasks_;
@@ -53,38 +55,45 @@ class Stage {
 
   
 public:
-  Stage(Message& message,
-        const ci::JsonTree& params, ci::Rand& random) :
+  Stage(Message& message, ci::JsonTree& params) :
     message_(message),
     params_(params),
-    random_(random),
-    cube_size_(params.getValueForKey<float>("cube.size")),
-    collapse_timer_(params.getValueForKey<double>("stage.collapseSpeed")),
+    active_(true),
     collapse_index_(0),
-    build_timer_(params.getValueForKey<double>("stage.buildSpeed")),
-    build_speed_(params.getValueForKey<double>("stage.buildSpeed")),
-    stage_block_length_(params.getValueForKey<size_t>("stage.startLength")),
     start_line_(0),
     finish_line_(0),
     next_start_line_(0),
     started_(false)
-  {
-    connection_holder_.add(message.connect(Msg::UPDATE, this, &Stage::update));
-    connection_holder_.add(message.connect(Msg::DRAW, this, &Stage::draw));
+  { }
 
-    connection_holder_.add(message.connect(Msg::SETUP_STAGE, this, &Stage::setup));
-    
-    connection_holder_.add(message.connect(Msg::CUBE_STAGE_HEIGHT, this, &Stage::stageHight));
-    
-    connection_holder_.add(message.connect(Msg::CAMERAVIEW_INFO, this, &Stage::cameraviewInfo));
+  void setup(boost::shared_ptr<Stage> obj_sp) {
+    cube_size_ = params_.getValueForKey<float>("cube.size");
 
-    connection_holder_.add(message.connect(Msg::PARADE_START, this, &Stage::start));
-    connection_holder_.add(message.connect(Msg::PARADE_FINISH, this, &Stage::finish));
+    collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
+    build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
+
+    build_speed_        = params_.getValueForKey<double>("stage.buildSpeed");
+    stage_block_length_ = params_.getValueForKey<size_t>("stage.startLength");
+
+    message_.connect(Msg::UPDATE, obj_sp, &Stage::update);
+    message_.connect(Msg::DRAW, obj_sp, &Stage::draw);
+
+    message_.connect(Msg::SETUP_STAGE, obj_sp, &Stage::setupStage);
+    
+    message_.connect(Msg::CUBE_STAGE_HEIGHT, obj_sp, &Stage::stageHight);
+    
+    message_.connect(Msg::CAMERAVIEW_INFO, obj_sp, &Stage::cameraviewInfo);
+
+    message_.connect(Msg::PARADE_START, obj_sp, &Stage::start);
+    message_.connect(Msg::PARADE_FINISH, obj_sp, &Stage::finish);
   }
 
   
 private:
-  void setup(const Message::Connection& connection, Param& params) {
+  bool isActive() const override { return active_; }
+
+
+  void setupStage(const Message::Connection& connection, Param& params) {
     u_int width  = params_.getValueForKey<u_int>("stage.width");
     u_int length = params_.getValueForKey<u_int>("stage.length");
 

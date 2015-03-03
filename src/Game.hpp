@@ -12,10 +12,8 @@
 #include "cinder/gl/Light.h"
 #include "Entity.hpp"
 #include "Message.hpp"
-#include "Stage.hpp"
 #include "JsonUtil.hpp"
 #include "Camera.hpp"
-#include "Light.hpp"
 #include "Sound.hpp"
 #include "EntityFactory.hpp"
 
@@ -31,9 +29,7 @@ class Game {
   EntityHolder  entity_holder_;
   EntityFactory factory_;
   
-  Stage stage_;
   Camera camera_;
-  Light light_;
 
   // Sound sound_;
 
@@ -44,9 +40,7 @@ public:
   explicit Game(ci::JsonTree& params) :
     params_(params),
     factory_(message_, params, entity_holder_),
-    stage_(message_, params, random_),
     camera_(message_, params),
-    light_(message_, params),
     // sound_(message_, params),
     pause_(false)
   {

@@ -12,6 +12,14 @@
 namespace ngs {
 
 class StageCube {
+  ci::Vec3i pos_block_;
+  ci::Vec3f pos_;
+  float size_;
+  ci::Color color_;
+
+  bool active_;
+
+  bool on_entity_;
 
 
 public:
@@ -57,16 +65,6 @@ public:
   bool isActive() const { return active_; }
   void active(const bool value) { active_ = value; }
   
-
-private:
-  ci::Vec3i pos_block_;
-  ci::Vec3f pos_;
-  float size_;
-  ci::Color color_;
-
-  bool active_;
-
-  bool on_entity_;
 };
   
 }

@@ -41,6 +41,8 @@ public:
   }
   
   void operator()(const T delta_time) {
+    // FIXME:task実行中にtaskへ追加が行われることがあるので
+    //       この実装になっている(std::listはコンテナへの操作でiteratorが無効にならない)
     for (auto it = std::begin(objects_); it != std::end(objects_); /* do nothing */) {
       it->fire_time -= delta_time;
       if (it->fire_time <= static_cast<T>(0)) {

@@ -7,13 +7,16 @@
 #include "GameEnvironment.hpp"
 #include "cinder/gl/Light.h"
 #include "Message.hpp"
+#include "Entity.hpp"
 
 
 namespace ngs {
 
-class Light {
+class Light : public Entity {
   Message& message_;
-  Message::ConnectionHolder connection_holder_;
+  const ci::JsonTree& params_;
+
+  bool active_;
 
   ci::gl::Light light_;
 
@@ -23,31 +26,37 @@ class Light {
 
 
 public:
-  Light(Message& message, const ci::JsonTree& params) :
+  explicit Light(Message& message, ci::JsonTree& params) :
     message_(message),
+    params_(params),
     light_(ci::gl::Light::POINT, 0),
-    pos_(Json::getVec3<float>(params["light.pos"])),
-    offset_(pos_)
-  {
+    active_(true)
+  {}
+
+  void setup(boost::shared_ptr<Light> obj_sp) {
+    pos_    = Json::getVec3<float>(params_["light.pos"]);
+    offset_ = pos_;
     light_.setPosition(pos_);
 
-    light_.setAttenuation(params["light.ConstantAttenuation"].getValue<float>(),
-                          params["light.LinearAttenuation"].getValue<float>(),
-                          params["light.QuadraticAttenuation"].getValue<float>());
+    light_.setAttenuation(params_["light.ConstantAttenuation"].getValue<float>(),
+                          params_["light.LinearAttenuation"].getValue<float>(),
+                          params_["light.QuadraticAttenuation"].getValue<float>());
 
-    light_.setDiffuse(Json::getColor<float>(params["light.Diffuse"]));
-    light_.setAmbient(Json::getColor<float>(params["light.Ambient"]));
-    light_.setSpecular(Json::getColor<float>(params["light.Specular"]));
+    light_.setDiffuse(Json::getColor<float>(params_["light.Diffuse"]));
+    light_.setAmbient(Json::getColor<float>(params_["light.Ambient"]));
+    light_.setSpecular(Json::getColor<float>(params_["light.Specular"]));
 
-    connection_holder_.add(message.connect(Msg::UPDATE, this, &Light::update));
-    connection_holder_.add(message.connect(Msg::STAGE_POS, this, &Light::stagePos));
-    connection_holder_.add(message.connect(Msg::LIGHT_ENABLE, this, &Light::enable));
-    connection_holder_.add(message.connect(Msg::LIGHT_DISABLE, this, &Light::disable));
-    
+    message_.connect(Msg::UPDATE, obj_sp, &Light::update);
+    message_.connect(Msg::STAGE_POS, obj_sp, &Light::stagePos);
+    message_.connect(Msg::LIGHT_ENABLE, obj_sp, &Light::enable);
+    message_.connect(Msg::LIGHT_DISABLE, obj_sp, &Light::disable);
   }
 
 
 private:
+  bool isActive() const override { return active_; }
+
+
   void update(const Message::Connection& connection, Param& param) {
     pos_.x = pos_.x + (target_pos_.x - pos_.x) * 0.1f;
     pos_.z = pos_.z + (target_pos_.z - pos_.z) * 0.1f;

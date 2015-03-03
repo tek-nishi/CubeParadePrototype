@@ -14,6 +14,7 @@ namespace ngs {
 
 class StageWatcher : public Entity {
   Message& message_;
+  const ci::JsonTree& params_;
 
   bool active_;
 
@@ -28,8 +29,9 @@ class StageWatcher : public Entity {
   
   
 public:
-  explicit StageWatcher(Message& message) :
+  explicit StageWatcher(Message& message, ci::JsonTree& params) :
     message_(message),
+    params_(params),
     active_(true),
     start_line_(0),
     finish_line_(0),
@@ -39,9 +41,7 @@ public:
     player_num_(0)
   { }
   
-  void setup(boost::shared_ptr<StageWatcher> obj_sp,
-             const ci::JsonTree& params) {
-
+  void setup(boost::shared_ptr<StageWatcher> obj_sp) {
     message_.connect(Msg::POST_STAGE_INFO, obj_sp, &StageWatcher::getStageInfo);
 
     message_.connect(Msg::CUBE_PLAYER_POS, obj_sp, &StageWatcher::check);
