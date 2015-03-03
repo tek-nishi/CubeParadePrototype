@@ -47,7 +47,9 @@ public:
     // sound_(message_, params),
     pause_(false)
   {
-    message_.connect(Msg::CUBE_PLAYER_DEAD, this, &Game::retryStage);
+    message_.connect(Msg::CUBE_PLAYER_DEAD, this, &Game::restartStage);
+    message_.connect(Msg::ALL_STAGE_CLEAR, this, &Game::restartStage);
+    
     setup();
   }
 
@@ -170,7 +172,7 @@ private:
   }
 
 
-  void retryStage(const Message::Connection& connection, Param& params) {
+  void restartStage(const Message::Connection& connection, Param& params) {
     timer_tasks_.add(3.0, [this]() {
         message_.signal(Msg::RESET_STAGE, Param());
         // この場でentityを破棄

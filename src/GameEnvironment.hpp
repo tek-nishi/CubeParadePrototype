@@ -28,6 +28,8 @@ enum Msg {
   PARADE_START,
   PARADE_FINISH,
 
+  ALL_STAGE_CLEAR,
+  
   // 各種情報を収集
   GATHER_INFORMATION,
 

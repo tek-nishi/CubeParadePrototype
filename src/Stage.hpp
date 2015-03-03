@@ -128,8 +128,9 @@ private:
 
     {
       Param params = {
-        { "start_line", start_line_ },
+        { "start_line",  start_line_ },
         { "finish_line", finish_line_ },
+        { "final_stage", isFinalStage(current_stage_) },
       };
       message_.signal(Msg::POST_STAGE_INFO, params);
     }
@@ -261,6 +262,7 @@ private:
         if (current_stage_ == stage_num) {
           // 全stageクリア
           DOUT << "all stage clear!!" << std::endl;
+          message_.signal(Msg::ALL_STAGE_CLEAR, Param());
           return;
         }
 
@@ -286,8 +288,9 @@ private:
 
         {
           Param params = {
-            { "start_line", start_line_ },
+            { "start_line",  start_line_ },
             { "finish_line", finish_line_ },
+            { "final_stage", filal_stage },
           };
           message_.signal(Msg::POST_STAGE_INFO, params);
         }

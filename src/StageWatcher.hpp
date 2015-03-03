@@ -20,6 +20,7 @@ class StageWatcher : public Entity {
 
   int start_line_;
   int finish_line_;
+  bool final_stage_;
 
   bool started_;
   bool finished_;
@@ -56,8 +57,9 @@ private:
 
   
   void getStageInfo(const Message::Connection& connection, Param& params) {
-    start_line_ = boost::any_cast<int>(params["start_line"]);
+    start_line_  = boost::any_cast<int>(params["start_line"]);
     finish_line_ = boost::any_cast<int>(params["finish_line"]);
+    final_stage_ = boost::any_cast<bool>(params["final_stage"]);
 
     started_  = false;
     finished_ = false;
@@ -84,13 +86,17 @@ private:
         message_.signal(Msg::PARADE_FINISH, Param());
 
         DOUT << "Parade Finish. score:" << progress_ << std::endl;
+        if (final_stage_) {
+          DOUT << "Cleared final stage." << std::endl;
+          active_ = false;
+        }
       }
     }
   }
 
   void inactive(const Message::Connection& connection, Param& params) {
     active_ = false;
-    DOUT << "Parade Finish. score:" << progress_ << std::endl;
+    DOUT << "Parade Miss. score:" << progress_ << std::endl;
   }
 
   void createdPlayer(const Message::Connection& connection, Param& params) {

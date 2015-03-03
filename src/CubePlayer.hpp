@@ -106,6 +106,8 @@ public:
     message_.connect(Msg::CAMERAVIEW_INFO, obj_sp, &CubePlayer::info);
     message_.connect(Msg::GATHER_INFORMATION, obj_sp, &CubePlayer::gatherInfo);
 
+    message_.connect(Msg::RESET_STAGE, obj_sp, &CubePlayer::inactive);
+
     message_.connect(Msg::TOUCH_BEGAN, obj_sp, &CubePlayer::touchesBegan);
     message_.connect(Msg::TOUCH_MOVED, obj_sp, &CubePlayer::touchesMoved);
     message_.connect(Msg::TOUCH_ENDED, obj_sp, &CubePlayer::touchesEnded);
@@ -118,11 +120,9 @@ private:
   bool isActive() const override { return active_; }
 
   
-  ci::AxisAlignedBox3f getBoundingBox() {
-    return std::move(ci::AxisAlignedBox3f(ci::Vec3f(-size_ / 2,     0, -size_ / 2) + pos_,
-                                          ci::Vec3f( size_ / 2, size_,  size_ / 2) + pos_));
+  void inactive(const Message::Connection& connection, Param& params) {
+    active_ = false;
   }
-
 
   // TIPS:CubePlayer::update が private で Entity::update は public という定義が可能
   void update(const Message::Connection& connection, Param& params) {
@@ -230,15 +230,6 @@ private:
     };
     
     informations.push_back(std::move(info));
-  }
-
-  
-  bool isBodyPicked(const Touch& touch, Camera& camera) {
-    auto ray = camera.generateRay(touch.pos);
-
-    float z_cross[2];
-    int num = getBoundingBox().intersect(ray, z_cross);
-    return num > 0;
   }
 
 
@@ -411,6 +402,20 @@ private:
       move_direction_ = move_direction;
       move_speed_     = 0;
     }
+  }
+  
+  
+  ci::AxisAlignedBox3f getBoundingBox() {
+    return std::move(ci::AxisAlignedBox3f(ci::Vec3f(-size_ / 2,     0, -size_ / 2) + pos_,
+                                          ci::Vec3f( size_ / 2, size_,  size_ / 2) + pos_));
+  }
+  
+  bool isBodyPicked(const Touch& touch, Camera& camera) {
+    auto ray = camera.generateRay(touch.pos);
+
+    float z_cross[2];
+    int num = getBoundingBox().intersect(ray, z_cross);
+    return num > 0;
   }
 
   bool startRotationMove(const std::vector<PlayerInfo>& information) {
