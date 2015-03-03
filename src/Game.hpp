@@ -80,6 +80,9 @@ public:
       message_.signal(Msg::TOUCHPREVIEW_TOGGLE, Param());
     }
   }
+
+  void keyUp(const int keycode, const int charactor) {
+  }
   
   
   void update(const double delta_time) {

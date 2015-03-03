@@ -21,6 +21,7 @@ class CubeParadePrototypeApp : public AppNative {
   ci::JsonTree params_;
   std::unique_ptr<Game> game_;
   bool paused_;
+  bool boost_update_;
 
   double elapsed_time_;
 
@@ -64,6 +65,7 @@ class CubeParadePrototypeApp : public AppNative {
     
     game_   = std::unique_ptr<Game>(new Game(params_));
     paused_ = false;
+    boost_update_ = false;
                             
     elapsed_time_ = getElapsedSeconds();
   }
@@ -163,6 +165,25 @@ class CubeParadePrototypeApp : public AppNative {
       // Pause状態を維持
       game_->pause(paused_);
     }
+
+    if ((keycode == ci::app::KeyEvent::KEY_LSHIFT)
+        || (keycode == ci::app::KeyEvent::KEY_RSHIFT)) {
+
+      boost_update_ = true;
+    }
+  }
+
+  void keyUp(KeyEvent event) override {
+    int keycode   = event.getCode();
+    int charactor = event.getChar();
+
+    game_->keyUp(keycode, charactor);
+
+    if ((keycode == ci::app::KeyEvent::KEY_LSHIFT)
+        || (keycode == ci::app::KeyEvent::KEY_RSHIFT)) {
+      
+      boost_update_ = false;
+    }
   }
   
 
@@ -173,7 +194,10 @@ class CubeParadePrototypeApp : public AppNative {
   
 	void update() override {
     double current_time = getElapsedSeconds();
-    game_->update(current_time - elapsed_time_);
+
+    double delta_time = current_time - elapsed_time_;
+    if (boost_update_) delta_time *= 4.0;
+    game_->update(delta_time);
 
     // DOUT << current_time - elapsed_time_ << std::endl;
     
