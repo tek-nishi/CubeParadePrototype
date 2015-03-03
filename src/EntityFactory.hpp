@@ -4,13 +4,13 @@
 // Entity生成
 //
 
+#include "Light.hpp"
+#include "Stage.hpp"
 #include "StageWatcher.hpp"
 #include "CubePlayer.hpp"
 #include "FallCube.hpp"
 #include "EntryCube.hpp"
 #include "TouchPreview.hpp"
-#include "Light.hpp"
-#include "Stage.hpp"
 
 
 namespace ngs {

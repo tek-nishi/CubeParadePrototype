@@ -94,12 +94,16 @@ public:
   
   void update(const double delta_time) {
     if (pause_) return;
+
+    // FIXME:VS2013 update1はboost::anyの初期化リストに右辺値を入れると
+    //       実行時エラーになる
+    auto player_info = std::vector<PlayerInfo>();
     
     Param params = {
       { "deltaTime", delta_time },
       { "frustum", ci::Frustumf(camera_.body()) },
       { "camera", &camera_ },
-      { "playerInfo", std::vector<PlayerInfo>() }
+      { "playerInfo", player_info }
     };
     message_.signal(Msg::GATHER_INFORMATION, params);
     message_.signal(Msg::UPDATE, params);
