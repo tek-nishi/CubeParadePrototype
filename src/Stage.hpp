@@ -26,6 +26,9 @@ class Stage : public Entity {
 
   Task tasks_;
   TimerTask<double> timer_tasks_;
+
+  u_int current_stage_;
+  u_int stage_num_;
   
   float width_;
   float length_;
@@ -59,6 +62,7 @@ public:
     message_(message),
     params_(params),
     active_(true),
+    current_stage_(0),
     collapse_index_(0),
     start_line_(0),
     finish_line_(0),
@@ -75,6 +79,8 @@ public:
     build_speed_        = params_.getValueForKey<double>("stage.buildSpeed");
     stage_block_length_ = params_.getValueForKey<size_t>("stage.startLength");
 
+    stage_num_ = params_["stage.data"].getNumChildren();
+    
     message_.connect(Msg::UPDATE, obj_sp, &Stage::update);
     message_.connect(Msg::DRAW, obj_sp, &Stage::draw);
 
@@ -105,7 +111,7 @@ private:
     int offset_z = start_block_length_;
     start_line_ = offset_z - 1;
 
-    field_block_length_ = makeStage(params_["stage.data"][0], offset_z);
+    field_block_length_ = makeStage(params_["stage.data"][current_stage_], offset_z);
     offset_z += field_block_length_;
     finish_line_ = offset_z - 1;
 
@@ -129,7 +135,7 @@ private:
   }
 
   
-  int makeStage(const ci::JsonTree& params, const int start_z) {
+  int makeStage(const ci::JsonTree& params, const int start_z, bool finish_line = true) {
     const auto& body = params["body"];
 
     int z      = start_z;
@@ -147,7 +153,7 @@ private:
         auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
                                    : ci::Color(0.6f, 0.6f, 0.6f);
         // 終端がスタート & ゴールライン
-        if (z == goal_z) {
+        if (finish_line && (z == goal_z)) {
           color *= ci::Color(1.0f, 0.0f, 0.0f);
         }
 
@@ -279,6 +285,16 @@ private:
         // stageの全消去とGoal地点の生成を待って、次のstageの生成準備
         if (collapse_timer_.isActive()) return;
         if (build_timer_.isActive()) return;
+
+        size_t stage_num = params_["stage.data"].getNumChildren();
+        current_stage_ += 1;
+        if (current_stage_ == stage_num) {
+          // 全stageクリア
+          DOUT << "all stage clear!!" << std::endl;
+          return;
+        }
+
+        bool filal_stage = isFinalStage(current_stage_);
         
         collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
         build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed") / 3);
@@ -288,11 +304,13 @@ private:
         start_line_ = next_start_line_;
 
         int offset_z = next_start_line_ + 1;
-        field_block_length_ = makeStage(params_["stage.data"][1], offset_z);
+        field_block_length_ = makeStage(params_["stage.data"][current_stage_], offset_z);
         offset_z += field_block_length_;
         finish_line_ = offset_z - 1;
 
-        goal_block_length_ = makeStage(params_["stage.goal"], offset_z);
+        std::string key_id = std::string("stage") + (filal_stage ? ".finalGoal"
+                                                                 : ".goal");
+        goal_block_length_ = makeStage(params_[key_id], offset_z, filal_stage ? false : true);
         offset_z += goal_block_length_;
         next_start_line_ = offset_z - 1;
 
@@ -327,6 +345,10 @@ private:
           });
         
       });
+  }
+
+  bool isFinalStage(size_t current_stage) const {
+    return current_stage == (stage_num_ - 1);
   }
   
 };

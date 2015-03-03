@@ -6,12 +6,6 @@
 
 namespace ngs {
 
-// 解像度: iPhone4相当
-enum Frame {
-  WIDTH = 960,
-  HEIGHT = 640
-};
-
 enum Msg {
   UPDATE,
   POST_UPDATE,

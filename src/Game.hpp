@@ -50,14 +50,11 @@ public:
     message_.signal(Msg::SETUP_STAGE, Param());
 
     // 最後にPlayerの生成
-    {
-      const auto& entry_pos = params_["game.entry"];
-      for (const auto& pos : entry_pos) {
-        Param params = {
-          { "entry_pos", Json::getVec3<int>(pos) },
-        };
-        message_.signal(Msg::CREATE_CUBEPLAYER, params);
-      }
+    for (const auto& pos : params_["game.entry"]) {
+      Param params = {
+        { "entry_pos", Json::getVec3<int>(pos) },
+      };
+      message_.signal(Msg::CREATE_CUBEPLAYER, params);
     }
   }
 
@@ -95,8 +92,8 @@ public:
   void update(const double delta_time) {
     if (pause_) return;
 
-    // FIXME:VS2013 update1はboost::anyの初期化リストに右辺値を入れると
-    //       実行時エラーになる
+    // FIXME:VS2013 update1はboost::anyの初期化リストにコンテナの右辺値を入れると
+    //       実行時エラーになる??
     auto player_info = std::vector<PlayerInfo>();
     
     Param params = {

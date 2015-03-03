@@ -32,7 +32,11 @@ class CubeParadePrototypeApp : public AppNative {
   //      privateになっていて構わない
   
   void prepareSettings(Settings *settings) override {
-    settings->setWindowSize(Frame::WIDTH, Frame::HEIGHT);
+    params_ = JsonTree(loadAsset("params.json"));
+    
+    settings->setWindowSize(params_["app.width"].getValue<int>(),
+                            params_["app.height"].getValue<int>());
+
     settings->setTitle(PREPRO_TO_STR(PRODUCT_NAME));
 
 #if (TARGET_OS_MAC) && !(TARGET_OS_IPHONE)
@@ -58,7 +62,6 @@ class CubeParadePrototypeApp : public AppNative {
     getSignalSupportedOrientations().connect([](){ return ci::app::InterfaceOrientation::All; });
 #endif
     
-    params_ = JsonTree(loadAsset("params.json"));
     game_   = std::unique_ptr<Game>(new Game(params_));
     paused_ = false;
                             
