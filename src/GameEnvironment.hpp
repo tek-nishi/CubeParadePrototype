@@ -35,6 +35,7 @@ enum Msg {
 
   // 確定したPlayerの位置をbroadcast
   CUBE_PLAYER_POS,
+  CUBE_PLAYER_CHECK_FINISH,
   
   CUBE_PLAYER_DEAD,
 

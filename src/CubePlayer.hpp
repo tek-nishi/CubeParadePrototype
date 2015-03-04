@@ -104,7 +104,8 @@ public:
     message_.connect(Msg::DRAW, obj_sp, &CubePlayer::draw);
     
     message_.connect(Msg::GATHER_INFORMATION, obj_sp, &CubePlayer::gatherInfo);
-
+    message_.connect(Msg::CUBE_PLAYER_CHECK_FINISH, obj_sp, &CubePlayer::postPlayerZ);
+    
     message_.connect(Msg::RESET_STAGE, obj_sp, &CubePlayer::inactive);
 
     message_.connect(Msg::TOUCH_BEGAN, obj_sp, &CubePlayer::touchesBegan);
@@ -223,7 +224,12 @@ private:
     informations.push_back(std::move(info));
   }
 
+  void postPlayerZ(const Message::Connection& connection, Param& params) {
+    auto& player_z = boost::any_cast<std::vector<int>& >(params["playerZ"]);
+    player_z.push_back(pos_block_.z);
+  }
 
+  
   void touchesBegan(const Message::Connection& connection, Param& params) {
     if (picking_) return;
 
