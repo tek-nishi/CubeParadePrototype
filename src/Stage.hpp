@@ -31,7 +31,6 @@ class Stage : public Entity {
   u_int stage_num_;
   
   float width_;
-  float length_;
 
   float cube_size_;
   double build_speed_;
@@ -86,7 +85,7 @@ public:
     
     message_.connect(Msg::CUBE_STAGE_HEIGHT, obj_sp, &Stage::stageHight);
     
-    message_.connect(Msg::CAMERAVIEW_INFO, obj_sp, &Stage::cameraviewInfo);
+    message_.connect(Msg::GATHER_INFORMATION, obj_sp, &Stage::gatherInfo);
 
     message_.connect(Msg::PARADE_START, obj_sp, &Stage::start);
     message_.connect(Msg::PARADE_FINISH, obj_sp, &Stage::finish);
@@ -101,11 +100,7 @@ private:
     collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
     build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
 
-    u_int width  = params_.getValueForKey<u_int>("stage.width");
-    u_int length = params_.getValueForKey<u_int>("stage.length");
-
-    width_  = width * cube_size_;
-    length_ = stage_block_length_ * cube_size_;
+    width_ = params_.getValueForKey<u_int>("stage.width") * cube_size_;
 
     // Stage構築
     start_block_length_ = makeStage(params_["stage.start"], 0);
@@ -235,10 +230,10 @@ private:
   }
 
   
-  void cameraviewInfo(const Message::Connection& connection, Param& params) {
-    params["stage_bottom_z"] = float(collapse_index_ + collapse_timer_.lapseRate()) * cube_size_;
-    params["stage_width"]    = width_;
-    params["stage_length"]   = length_;
+  void gatherInfo(const Message::Connection& connection, Param& params) {
+    params["stageWidth"]   = width_;
+    params["stageLength"]  = active_cubes_.size() * cube_size_;
+    params["stageBottomZ"] = float(collapse_index_ + collapse_timer_.lapseRate()) * cube_size_;
   }
 
   

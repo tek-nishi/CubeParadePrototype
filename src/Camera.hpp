@@ -99,43 +99,37 @@ public:
   
   
 private:
-  void update(const Message::Connection& connection, Param& param) {
-    {
-      Param params = {
-        { "player_active", false },
-      };
-      message_.signal(Msg::CAMERAVIEW_INFO, params);
+  void update(const Message::Connection& connection, Param& params) {
+    float easing_rate = ease_cube_stop_;
 
-      float easing_rate = ease_cube_stop_;
-      
-      if (boost::any_cast<bool>(params["player_active"])) {
-        const auto& player_pos = boost::any_cast<const ci::Vec3f& >(params["player_pos"]);
+    const auto& player_info = boost::any_cast<const std::vector<PlayerInfo>& >(params["playerInfo"]);
+    if (!player_info.empty()) {
+      const auto& player_pos = player_info[0].pos;
 
-        // Stageの中心から左右への移動量 -> offset
-        float stage_width  = boost::any_cast<float>(params["stage_width"]);
-        float center_x = stage_width / 2;
+      // Stageの中心から左右への移動量 -> offset
+      float stage_width  = boost::any_cast<float>(params["stageWidth"]);
+      float center_x = stage_width / 2;
 
-        // Stageの下端からの移動量 -> offset
-        float stage_length = boost::any_cast<float>(params["stage_length"]);
-        float bottom_z     = boost::any_cast<float>(params["stage_bottom_z"]);
+      // Stageの下端からの移動量 -> offset
+      // float stage_length = boost::any_cast<float>(params["stageLength"]);
+      float bottom_z     = boost::any_cast<float>(params["stageBottomZ"]);
 
-        ci::Vec3f pos = player_pos;
-        pos.x = center_x + (player_pos.x - center_x) * center_rate_;
-        pos.z = bottom_z + (player_pos.z - bottom_z) * bottom_rate_;
+      ci::Vec3f pos;
+      pos.x = center_x + (player_pos.x - center_x) * center_rate_;
+      pos.z = bottom_z + (player_pos.z - bottom_z) * bottom_rate_;
         
-        target_eye_pos_      = eye_pos_ + pos;
-        target_interest_pos_ = interest_pos_ + pos;
+      target_eye_pos_      = eye_pos_ + pos;
+      target_interest_pos_ = interest_pos_ + pos;
 
-        if (boost::any_cast<bool>(params["player_rotation"])) easing_rate = ease_cube_move_;
-      }
-
-      // TODO:なめらか補完
-      auto eye_pos = camera_.getEyePoint();
-      camera_.setEyePoint(eye_pos + (target_eye_pos_ - eye_pos) * easing_rate);
-
-      auto interest_pos = camera_.getCenterOfInterestPoint();
-      camera_.setCenterOfInterestPoint(interest_pos + (target_interest_pos_ - interest_pos) * easing_rate);
+      if (player_info[0].now_rotation) easing_rate = ease_cube_move_;
     }
+
+    // TODO:なめらか補完
+    auto eye_pos = camera_.getEyePoint();
+    camera_.setEyePoint(eye_pos + (target_eye_pos_ - eye_pos) * easing_rate);
+
+    auto interest_pos = camera_.getCenterOfInterestPoint();
+    camera_.setCenterOfInterestPoint(interest_pos + (target_interest_pos_ - interest_pos) * easing_rate);
   }
 
   void reset(const Message::Connection& connection, Param& param) {

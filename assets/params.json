@@ -43,9 +43,6 @@
 
     "startLength": 15,
 
-    "startLine": 4,
-    "finishLine": 45,
-    
     "collapseSpeed": 1,
     "buildSpeed": 1,
 

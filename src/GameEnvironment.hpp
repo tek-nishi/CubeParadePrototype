@@ -40,11 +40,7 @@ enum Msg {
 
   // 開始位置、ゴール位置などのStage情報をbroadcast
   POST_STAGE_INFO,
-  
   CUBE_STAGE_HEIGHT,
-
-  // カメラ位置を決めるための情報収集
-  CAMERAVIEW_INFO,
 
   // 光源用ステージ位置
   STAGE_POS,

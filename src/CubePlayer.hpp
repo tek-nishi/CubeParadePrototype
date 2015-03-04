@@ -103,7 +103,6 @@ public:
     message_.connect(Msg::UPDATE, obj_sp, &CubePlayer::update);
     message_.connect(Msg::DRAW, obj_sp, &CubePlayer::draw);
     
-    message_.connect(Msg::CAMERAVIEW_INFO, obj_sp, &CubePlayer::info);
     message_.connect(Msg::GATHER_INFORMATION, obj_sp, &CubePlayer::gatherInfo);
 
     message_.connect(Msg::RESET_STAGE, obj_sp, &CubePlayer::inactive);
@@ -209,14 +208,6 @@ private:
     ci::gl::drawCube(ci::Vec3f::zero(), ci::Vec3f(size_, size_, size_));
     
     ci::gl::popModelView();
-  }
-
-  
-  void info(const Message::Connection& connection, Param& params) {
-    params["player_active"]    = true;
-    params["player_block_pos"] = pos_block_;
-    params["player_pos"]       = pos_;
-    params["player_rotation"]  = now_rotation_;
   }
 
   void gatherInfo(const Message::Connection& connection, Param& params) {

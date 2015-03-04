@@ -95,13 +95,16 @@ public:
     // FIXME:VS2013 update1はboost::anyの初期化リストにコンテナの右辺値を入れると
     //       実行時エラーになる??
     auto player_info = std::vector<PlayerInfo>();
-    
     Param params = {
       { "deltaTime", delta_time },
       { "frustum", ci::Frustumf(camera_.body()) },
       { "camera", &camera_ },
-      { "playerInfo", player_info }
+      { "playerInfo", player_info },
+      { "stageWidth", 0.0f },
+      { "stageLength", 0.0f },
+      { "stageBottomZ", 0.0f },
     };
+    
     message_.signal(Msg::GATHER_INFORMATION, params);
     message_.signal(Msg::UPDATE, params);
 
