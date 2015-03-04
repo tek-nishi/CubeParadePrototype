@@ -47,7 +47,7 @@ public:
     // sound_(message_, params),
     pause_(false)
   {
-    message_.connect(Msg::CUBE_PLAYER_DEAD, this, &Game::restartStage);
+    message_.connect(Msg::PARADE_MISS, this, &Game::restartStage);
     message_.connect(Msg::ALL_STAGE_CLEAR, this, &Game::restartStage);
     
     setup();

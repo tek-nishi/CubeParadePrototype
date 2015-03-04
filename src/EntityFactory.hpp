@@ -46,6 +46,8 @@ private:
 
   
   void setupGame(const Message::Connection& connection, Param& params) {
+    DOUT << "Msg::SETUP_GAME" << std::endl;
+    
     createAndAddEntity<Light>();
     createAndAddEntity<Stage>();
     createAndAddEntity<StageWatcher>();

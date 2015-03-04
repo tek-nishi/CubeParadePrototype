@@ -103,6 +103,7 @@ private:
   }
 
   void inactive(const Message::Connection& connection, Param& params) {
+    message_.signal(Msg::PARADE_MISS, params);
     active_ = false;
     DOUT << "Parade Miss. score:" << progress_ << std::endl;
   }

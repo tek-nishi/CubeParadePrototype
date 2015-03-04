@@ -27,6 +27,7 @@ enum Msg {
   
   PARADE_START,
   PARADE_FINISH,
+  PARADE_MISS,
 
   ALL_STAGE_CLEAR,
   
