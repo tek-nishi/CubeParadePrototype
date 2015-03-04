@@ -124,7 +124,7 @@ class CubeParadePrototypeApp : public AppNative {
   }
 
 
-  // OSX版はTrackPadの領域をWindowにマップした座標になっている
+  // TIPS:OSX版はTrackPadの領域をWindowにマップした座標になっている
   void touchesBegan(TouchEvent event) override {
     auto touches = createTouchInfo(event);
     game_->touchesBegan(touches);

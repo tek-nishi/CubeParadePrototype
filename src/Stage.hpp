@@ -118,6 +118,8 @@ private:
     goal_block_length_ = makeStage(params_["stage.goal"], offset_z);
     offset_z += goal_block_length_;
     next_start_line_ = offset_z - 1;
+
+    finishEntry(stage_data, finish_line_ + 1);
     
     // Stageから徐々に取り出して使う
     for (u_int iz = 0; iz < stage_block_length_; ++iz) {
@@ -185,14 +187,32 @@ private:
       for (const auto& cube : cubes_.front()) {
         if (!cube.isActive()) continue;
 
+        auto pos_block = cube.posBlock();
+        float y = (5.0f + random_.nextFloat() * 1.0f) * cube_size_;
         Param params = {
-          { "entry_pos", cube.posBlock() },
-          { "offset_y", (5.0f + random_.nextFloat() * 1.0f) * cube_size_ },
+          { "entry_pos", pos_block },
+          { "offset_y", y },
           { "active_time", build_speed_ },
           { "color", cube.color() },
         };
 
         message_.signal(Msg::CREATE_ENTRYCUBE, params);
+
+        if (cube.isOnEntity()) {
+          // Player生成
+          params["entry_pos"] = ci::Vec3i(pos_block.x, pos_block.y + 1, pos_block.z);
+          params["offset_y"]  = y + cube_size_;
+          params["color"]     = Json::getColor<float>(params_["CubePlayer.color"]);
+          
+          message_.signal(Msg::CREATE_ENTRYCUBE, params);
+
+          timer_tasks_.add(build_speed_, [this, pos_block]() {
+              Param params = {
+                { "entry_pos", pos_block },
+              };
+              message_.signal(Msg::CREATE_CUBEPLAYER, params);
+            });
+        }
       }
 
       // ステージの追加は追加演出の後に行うので、タスクに積んでおく
@@ -290,6 +310,8 @@ private:
         offset_z += goal_block_length_;
         next_start_line_ = offset_z - 1;
 
+        finishEntry(stage_data, field_block_length_);
+        
         {
           Param params = {
             { "start_line",  start_line_ },
@@ -360,6 +382,18 @@ private:
     }
 
     return body.getNumChildren();
+  }
+
+  void finishEntry(const ci::JsonTree& params, const u_int finish_line) {
+    if (!params.hasChild("finishEntry")) return;
+
+    for (const auto& entry : params["finishEntry"]) {
+      const auto& pos = Json::getVec2<int>(entry);
+
+      auto& cube = cubes_[pos.y + finish_line][pos.x];
+      cube.onEntity(true);
+      cube.entityType(StageCube::ON_PLAYER);
+    }
   }
   
 };

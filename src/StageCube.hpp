@@ -20,9 +20,17 @@ class StageCube {
   bool active_;
 
   bool on_entity_;
+  int entity_type_;
 
 
 public:
+  enum {
+    ON_PLAYER,
+    ON_ITEM,
+    ON_ENEMY
+  };
+  
+
   StageCube(const ci::Vec3i& pos_block, const float size,
             const bool active,
             const ci::Color& color = ci::Color::white()) :
@@ -38,7 +46,8 @@ public:
   void draw() const {
     if (!active_) return;
     
-    ci::gl::color(on_entity_ ? ci::Color(0.0f, 0.0f, 1.0f) + color_ * 0.5f : color_);
+    // ci::gl::color(on_entity_ ? ci::Color(0.0f, 0.0f, 1.0f) + color_ * 0.5f : color_);
+    ci::gl::color(color_);
 
     ci::Vec3f pos(pos_);
     // 上平面が(y = 0)
@@ -62,8 +71,12 @@ public:
   bool isOnEntity() const { return on_entity_; }
   void onEntity(const bool entity) { on_entity_ = entity; }
 
+  int entityType() const { return entity_type_; }
+  void entityType(const int entity_type) { entity_type_ = entity_type; }
+
   bool isActive() const { return active_; }
   void active(const bool value) { active_ = value; }
+
   
 };
   

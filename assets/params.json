@@ -77,6 +77,9 @@
       {
         "collapseSpeed": 1,
         "buildSpeed": 1,
+        "finishEntry": [
+          [ 3, 2 ]
+        ],
 
         "body": [
           [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -105,6 +108,9 @@
       {
         "collapseSpeed": 1,
         "buildSpeed": 0.8,
+        "finishEntry": [
+          [ 3, 2 ]
+        ],
 
         "body": [
           [-1,-1, 0, 0,-1,-1, 0, 0,-1,-1 ],
