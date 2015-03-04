@@ -23,8 +23,6 @@ namespace ngs {
 
 class Game {
   ci::JsonTree& params_;
-  ci::Rand random_;
-  
   Message message_;
 
   EntityHolder  entity_holder_;

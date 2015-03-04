@@ -20,7 +20,6 @@ namespace ngs {
 class Stage : public Entity {
   Message& message_;
   const ci::JsonTree& params_;
-  ci::Rand random_;
 
   bool active_;
 
@@ -194,7 +193,7 @@ private:
         Param params = {
           { "entry_pos", cube.posBlock() },
           { "color", cube.color() },
-          { "speed", 1.0f + random_.nextFloat() }
+          { "speed", 1.0f + ci::randFloat() }
         };
         
         message_.signal(Msg::CREATE_FALLCUBE, params);
@@ -214,7 +213,7 @@ private:
         if (!cube.isActive()) continue;
 
         auto pos_block = cube.posBlock();
-        float y = (5.0f + random_.nextFloat() * 1.0f) * cube_size_;
+        float y = (5.0f + ci::randFloat() * 1.0f) * cube_size_;
         Param params = {
           { "entry_pos", pos_block },
           { "offset_y", y },

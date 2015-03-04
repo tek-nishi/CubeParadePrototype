@@ -12,4 +12,10 @@ u_int getUniqueNumber() {
   return ++unique_number;
 }
 
+// 配列の要素数を取得
+template <typename T>
+std::size_t elemsof(const T& t) {
+  return std::distance(std::begin(t), std::end(t));
+}
+
 }

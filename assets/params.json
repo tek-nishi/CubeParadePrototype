@@ -180,7 +180,7 @@
   "CubeEnemy": {
     "color": [ 0.1, 0.1, 0.1 ],
 
-    "moveRotateTime": 0.4
+    "moveRotateTime": 0.5
   },
 
   "game": {
