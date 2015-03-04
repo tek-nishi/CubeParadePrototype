@@ -54,8 +54,8 @@ public:
     camera_.setEyePoint(eye_pos_);
     camera_.setCenterOfInterestPoint(interest_pos_);
     
-    connection_holder_.add(message.connect(Msg::POST_UPDATE, this, &Camera::update));
-    connection_holder_.add(message.connect(Msg::RESET_STAGE, this, &Camera::reset));
+    connection_holder_ += message.connect(Msg::POST_UPDATE, this, &Camera::update);
+    connection_holder_ += message.connect(Msg::RESET_STAGE, this, &Camera::reset);
   }
 
 

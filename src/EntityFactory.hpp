@@ -30,12 +30,12 @@ public:
     params_(params),
     entity_holder_(entity_holder)
   {
-    connection_holder_.add(message.connect(Msg::SETUP_GAME, this, &EntityFactory::setupGame));
+    connection_holder_ += message.connect(Msg::SETUP_GAME, this, &EntityFactory::setupGame);
 
-    connection_holder_.add(message.connect(Msg::CREATE_CUBEPLAYER, this, &EntityFactory::createCubePlayer));
-    connection_holder_.add(message.connect(Msg::CREATE_CUBEENEMY, this, &EntityFactory::createCubeEnemy));
-    connection_holder_.add(message.connect(Msg::CREATE_FALLCUBE, this, &EntityFactory::createFallcube));
-    connection_holder_.add(message.connect(Msg::CREATE_ENTRYCUBE, this, &EntityFactory::createEntrycube));
+    connection_holder_ += message.connect(Msg::CREATE_CUBEPLAYER, this, &EntityFactory::createCubePlayer);
+    connection_holder_ += message.connect(Msg::CREATE_CUBEENEMY, this, &EntityFactory::createCubeEnemy);
+    connection_holder_ += message.connect(Msg::CREATE_FALLCUBE, this, &EntityFactory::createFallcube);
+    connection_holder_ += message.connect(Msg::CREATE_ENTRYCUBE, this, &EntityFactory::createEntrycube);
   }
 
 

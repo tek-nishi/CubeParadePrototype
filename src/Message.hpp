@@ -73,16 +73,27 @@ public:
 
   public:
     ConnectionHolder() = default;
-    
-    void add(Connection connection) {
-      connections_.push_back(connection);
-    }
 
     ~ConnectionHolder() {
       for (auto& connection : connections_) {
         connection.disconnect();
       }
     }
+
+    
+    void add(Connection& connection) {
+      connections_.push_back(connection);
+    }
+
+    // FIXME:参照とmoveの両方用意するの??
+    void operator += (Connection& connection) {
+      add(connection);
+    }
+
+    void operator += (Connection&& connection) {
+      add(connection);
+    }
+
   };
 
   

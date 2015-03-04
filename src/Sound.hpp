@@ -16,6 +16,12 @@
 namespace ngs {
 
 class Sound {
+  Message& message_;
+  Message::ConnectionHolder connection_holder_;
+  
+  const ci::JsonTree& params_;
+
+  
   // 各音源情報
   struct Object {
     std::string type;
@@ -122,8 +128,8 @@ public:
       creator[object.type](ctx, it);
     }
     
-    connection_holder_.add(message.connect(Msg::SOUND_PLAY, this, &Sound::play));
-    connection_holder_.add(message.connect(Msg::SOUND_STOP, this, &Sound::stop));
+    connection_holder_ += message.connect(Msg::SOUND_PLAY, this, &Sound::play);
+    connection_holder_ += message.connect(Msg::SOUND_STOP, this, &Sound::stop);
   }
   
 
@@ -202,12 +208,6 @@ private:
       }
     }
   }
-
-  
-  Message& message_;
-  Message::ConnectionHolder connection_holder_;
-  
-  const ci::JsonTree& params_;
 
 };
 
