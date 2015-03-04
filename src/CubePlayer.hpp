@@ -29,7 +29,6 @@ class CubePlayer : public Entity {
 
   float size_;
   ci::Color color_;
-  ci::Vec3f speed_;
 
   bool   picking_;
   u_int  picking_id_;
@@ -133,7 +132,7 @@ private:
     double delta_time = boost::any_cast<double>(params.at("deltaTime"));
 
     if (begin_rotation_) {
-      auto& information = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+      auto& information = boost::any_cast<std::vector<CubeInfo>& >(params["playerInfo"]);
       if (startRotationMove(information)) {
         updateInformation(pos_block_, information);
       }
@@ -156,7 +155,7 @@ private:
         }
 
         // まだ移動するか判定
-        auto& information = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+        auto& information = boost::any_cast<std::vector<CubeInfo>& >(params["playerInfo"]);
         if (continueRotationMove(information)) {
           updateInformation(pos_block_, information);
         }
@@ -216,10 +215,11 @@ private:
   }
 
   void gatherInfo(const Message::Connection& connection, Param& params) {
-    auto& informations = boost::any_cast<std::vector<PlayerInfo>& >(params["playerInfo"]);
+    auto& informations = boost::any_cast<std::vector<CubeInfo>& >(params["playerInfo"]);
 
-    PlayerInfo info = {
+    CubeInfo info = {
       id_,
+      true,
       pos_block_,
       pos_,
       now_rotation_
@@ -422,7 +422,7 @@ private:
     return num > 0;
   }
 
-  bool startRotationMove(const std::vector<PlayerInfo>& information) {
+  bool startRotationMove(const std::vector<CubeInfo>& information) {
     ci::Quatf rotate_table[] = {
       ci::Quatf(ci::Vec3f(1, 0, 0),  M_PI / 2),
       ci::Quatf(ci::Vec3f(1, 0, 0), -M_PI / 2),
@@ -480,14 +480,14 @@ private:
     return true;
   }
 
-  bool continueRotationMove(const std::vector<PlayerInfo>& information) {
+  bool continueRotationMove(const std::vector<CubeInfo>& information) {
     if (move_speed_ == 0) return false;
     move_speed_ -= 1;
 
     return startRotationMove(information);
   }
 
-  bool searchOtherPlayer(const ci::Vec3i block_pos, const std::vector<PlayerInfo>& information) {
+  bool searchOtherPlayer(const ci::Vec3i block_pos, const std::vector<CubeInfo>& information) {
     for (auto& info : information) {
       if (info.id == id_) continue;
 
@@ -500,7 +500,7 @@ private:
     return false;
   }
 
-  void updateInformation(const ci::Vec3i block_pos, std::vector<PlayerInfo>& information) {
+  void updateInformation(const ci::Vec3i block_pos, std::vector<CubeInfo>& information) {
     for (auto& info : information) {
       if (info.id != id_) continue;
 

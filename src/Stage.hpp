@@ -123,6 +123,32 @@ private:
     
     // Stageから徐々に取り出して使う
     for (u_int iz = 0; iz < stage_block_length_; ++iz) {
+      const auto& cubes = cubes_.front();
+      for (const auto& cube : cubes) {
+        if (!cube.isOnEntity()) continue;
+
+        switch (cube.entityType()) {
+        case StageCube::ON_PLAYER:
+          {
+            Param params = {
+              { "entry_pos", cube.posBlock() },
+              { "paused", true },
+            };
+            message_.signal(Msg::CREATE_CUBEPLAYER, params);
+          }
+          break;
+
+        case StageCube::ON_ENEMY:
+          {
+            Param params = {
+              { "entry_pos", cube.posBlock() },
+            };
+            message_.signal(Msg::CREATE_CUBEENEMY, params);
+          }
+          break;
+        }
+      }
+      
       active_cubes_.push_back(cubes_.front());
       cubes_.pop_front();
     }
@@ -202,17 +228,37 @@ private:
           // Player生成
           params["entry_pos"] = ci::Vec3i(pos_block.x, pos_block.y + 1, pos_block.z);
           params["offset_y"]  = y + cube_size_;
-          params["color"]     = Json::getColor<float>(params_["CubePlayer.color"]);
-          
-          message_.signal(Msg::CREATE_ENTRYCUBE, params);
 
-          timer_tasks_.add(build_speed_, [this, pos_block]() {
-              Param params = {
-                { "entry_pos", pos_block },
-                { "paused", true },
-              };
-              message_.signal(Msg::CREATE_CUBEPLAYER, params);
-            });
+          switch (cube.entityType()) {
+          case StageCube::ON_PLAYER:
+            {
+              params["color"] = Json::getColor<float>(params_["CubePlayer.color"]);
+              message_.signal(Msg::CREATE_ENTRYCUBE, params);
+
+              timer_tasks_.add(build_speed_, [this, pos_block]() {
+                  Param params = {
+                    { "entry_pos", pos_block },
+                    { "paused", true },
+                  };
+                  message_.signal(Msg::CREATE_CUBEPLAYER, params);
+                });
+            }
+            break;
+
+          case StageCube::ON_ENEMY:
+            {
+              params["color"] = Json::getColor<float>(params_["CubeEnemy.color"]);
+              message_.signal(Msg::CREATE_ENTRYCUBE, params);
+
+              timer_tasks_.add(build_speed_, [this, pos_block]() {
+                  Param params = {
+                    { "entry_pos", pos_block }
+                  };
+                  message_.signal(Msg::CREATE_CUBEENEMY, params);
+                });
+            }
+            break;
+          }
         }
       }
 
@@ -366,6 +412,8 @@ private:
         int y = cube.getValue<int>();
         // 高さがマイナス -> ブロックなし
         bool active = y >= 0;
+        bool on_entity = (y > 0) && (y & 0x40);
+        if (y > 0) y = y & 0x3f;
 
         // FIXME:互い違いの色
         auto color = ((x + z) & 1) ? ci::Color(0.8f, 0.8f, 0.8f)
@@ -377,6 +425,15 @@ private:
 
         stage_line.emplace_back(ci::Vec3i(x, y, z), cube_size_, active, color);
         x += 1;
+
+        // 敵の生成
+        // FIXME:別なところで処理
+        if (on_entity) {
+          auto& cube = stage_line.back();
+          cube.onEntity(true);
+          cube.entityType(StageCube::ON_ENEMY);
+        }
+        
       }
       cubes_.push_back(std::move(stage_line));
       z += 1;

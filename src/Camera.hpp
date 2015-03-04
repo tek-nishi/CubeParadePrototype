@@ -102,9 +102,14 @@ private:
   void update(const Message::Connection& connection, Param& params) {
     float easing_rate = ease_cube_stop_;
 
-    const auto& player_info = boost::any_cast<const std::vector<PlayerInfo>& >(params["playerInfo"]);
-    if (!player_info.empty()) {
-      const auto& player_pos = player_info[0].pos;
+    const auto& cube_info = boost::any_cast<const std::vector<CubeInfo>& >(params["playerInfo"]);
+    if (!cube_info.empty()) {
+      const auto cube_it = std::find_if(std::begin(cube_info), std::end(cube_info),
+                                        [](const CubeInfo& info) {
+                                          return info.manipulate;
+                                        });
+      
+      const auto& player_pos = cube_it->pos;
 
       // Stageの中心から左右への移動量 -> offset
       float stage_width  = boost::any_cast<float>(params["stageWidth"]);
@@ -121,7 +126,7 @@ private:
       target_eye_pos_      = eye_pos_ + pos;
       target_interest_pos_ = interest_pos_ + pos;
 
-      if (player_info[0].now_rotation) easing_rate = ease_cube_move_;
+      if (cube_it->now_rotation) easing_rate = ease_cube_move_;
     }
 
     // TODO:なめらか補完

@@ -8,6 +8,7 @@
 #include "Stage.hpp"
 #include "StageWatcher.hpp"
 #include "CubePlayer.hpp"
+#include "CubeEnemy.hpp"
 #include "FallCube.hpp"
 #include "EntryCube.hpp"
 #include "TouchPreview.hpp"
@@ -32,6 +33,7 @@ public:
     connection_holder_.add(message.connect(Msg::SETUP_GAME, this, &EntityFactory::setupGame));
 
     connection_holder_.add(message.connect(Msg::CREATE_CUBEPLAYER, this, &EntityFactory::createCubePlayer));
+    connection_holder_.add(message.connect(Msg::CREATE_CUBEENEMY, this, &EntityFactory::createCubeEnemy));
     connection_holder_.add(message.connect(Msg::CREATE_FALLCUBE, this, &EntityFactory::createFallcube));
     connection_holder_.add(message.connect(Msg::CREATE_ENTRYCUBE, this, &EntityFactory::createEntrycube));
   }
@@ -55,6 +57,11 @@ private:
     const auto& entry_pos = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
     bool paused = boost::any_cast<bool>(params["paused"]);
     createAndAddEntity<CubePlayer>(entry_pos, paused);
+  }
+  
+  void createCubeEnemy(const Message::Connection& connection, Param& params) {
+    const auto& entry_pos = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
+    createAndAddEntity<CubeEnemy>(entry_pos);
   }
   
   void createFallcube(const Message::Connection& connection, Param& params) {

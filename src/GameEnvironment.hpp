@@ -48,6 +48,7 @@ enum Msg {
   
   // Entity生成
   CREATE_CUBEPLAYER,
+  CREATE_CUBEENEMY,
   CREATE_FALLCUBE,
   CREATE_ENTRYCUBE,
 
@@ -63,12 +64,13 @@ enum Msg {
 };
 
 
-struct PlayerInfo {
+struct CubeInfo {
   u_int id;
+  bool manipulate;
   
   ci::Vec3i block_pos;
   ci::Vec3f pos;
-  
+
   bool now_rotation;
 };
 
