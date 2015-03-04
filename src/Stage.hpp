@@ -33,6 +33,8 @@ class Stage : public Entity {
   float width_;
 
   float cube_size_;
+
+  double collapse_speed_;
   double build_speed_;
   
   LapTimer<double> collapse_timer_;
@@ -72,7 +74,6 @@ public:
   void setup(boost::shared_ptr<Stage> obj_sp) {
     cube_size_ = params_.getValueForKey<float>("cube.size");
 
-    build_speed_        = params_.getValueForKey<double>("stage.buildSpeed");
     stage_block_length_ = params_.getValueForKey<size_t>("stage.startLength");
 
     stage_num_ = params_["stage.data"].getNumChildren();
@@ -97,9 +98,6 @@ private:
 
 
   void setupStage(const Message::Connection& connection, Param& params) {
-    collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
-    build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
-
     width_ = params_.getValueForKey<u_int>("stage.width") * cube_size_;
 
     // Stage構築
@@ -107,10 +105,16 @@ private:
     int offset_z = start_block_length_;
     start_line_ = offset_z - 1;
 
-    field_block_length_ = makeStage(params_["stage.data"][current_stage_], offset_z);
+    const auto& stage_data = params_["stage.data"][current_stage_];
+    field_block_length_ = makeStage(stage_data, offset_z);
     offset_z += field_block_length_;
     finish_line_ = offset_z - 1;
 
+    collapse_speed_ = stage_data.getValueForKey<double>("collapseSpeed");
+    build_speed_    = stage_data.getValueForKey<double>("buildSpeed");
+    collapse_timer_.setTimer(collapse_speed_);
+    build_timer_.setTimer(build_speed_);
+    
     goal_block_length_ = makeStage(params_["stage.goal"], offset_z);
     offset_z += goal_block_length_;
     next_start_line_ = offset_z - 1;
@@ -262,19 +266,24 @@ private:
         }
 
         bool filal_stage = isFinalStage(current_stage_);
-        
-        collapse_timer_.setTimer(params_.getValueForKey<double>("stage.collapseSpeed"));
-        build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed") / 3);
+
+        // 次のステージの一部分をさっさと生成
+        build_timer_.setTimer(build_speed_ / 3);
         build_timer_.start();
         
         // 次のステージを生成
         start_line_ = next_start_line_;
 
         int offset_z = next_start_line_ + 1;
-        field_block_length_ = makeStage(params_["stage.data"][current_stage_], offset_z);
+        const auto& stage_data = params_["stage.data"][current_stage_];
+        field_block_length_ = makeStage(stage_data, offset_z);
         offset_z += field_block_length_;
         finish_line_ = offset_z - 1;
 
+        // 生成と崩壊速度の再指定
+        collapse_speed_ = stage_data.getValueForKey<double>("collapseSpeed");
+        build_speed_    = stage_data.getValueForKey<double>("buildSpeed");
+        
         std::string key_id = std::string("stage") + (filal_stage ? ".finalGoal"
                                                                  : ".goal");
         goal_block_length_ = makeStage(params_[key_id], offset_z, filal_stage ? false : true);
@@ -294,8 +303,9 @@ private:
             // stageが規定サイズ生成されたらstage開始!!
             if (cubes_.size() ==
                 (goal_block_length_ * 2 + field_block_length_ - stage_block_length_)) {
+              collapse_timer_.setTimer(collapse_speed_);
               collapse_timer_.start();
-              build_timer_.setTimer(params_.getValueForKey<double>("stage.buildSpeed"));
+              build_timer_.setTimer(build_speed_);
               started_ = false;
 
               // start lineの書き換え
