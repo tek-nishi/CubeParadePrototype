@@ -21,6 +21,7 @@ class CubePlayer : public Entity {
   bool active_;
 
   u_int id_;
+  bool paused_;
   
   ci::Vec3i pos_block_;
   ci::Vec3f pos_;
@@ -83,8 +84,10 @@ public:
 
   // FIXME:コンストラクタではshared_ptrが決まっていないための措置
   void setup(boost::shared_ptr<CubePlayer> obj_sp,
-             const ci::Vec3i& entry_pos_block) {
+             const ci::Vec3i& entry_pos_block,
+             const bool paused = false) {
 
+    paused_    = paused;
     rot_       = ci::Quatf::identity();
     size_      = params_["cube.size"].getValue<float>();
     pos_block_ = entry_pos_block;
@@ -105,6 +108,7 @@ public:
     
     message_.connect(Msg::GATHER_INFORMATION, obj_sp, &CubePlayer::gatherInfo);
     message_.connect(Msg::CUBE_PLAYER_CHECK_FINISH, obj_sp, &CubePlayer::postPlayerZ);
+    message_.connect(Msg::PARADE_FINISH, obj_sp, &CubePlayer::unpause);
     
     message_.connect(Msg::RESET_STAGE, obj_sp, &CubePlayer::inactive);
 
@@ -229,9 +233,12 @@ private:
     player_z.push_back(pos_block_.z);
   }
 
+  void unpause(const Message::Connection& connection, Param& params) {
+    paused_ = false;
+  }
   
   void touchesBegan(const Message::Connection& connection, Param& params) {
-    if (picking_) return;
+    if (picking_ || paused_) return;
 
     auto* touches = boost::any_cast<std::vector<Touch>* >(params.at("touch"));
 #if 0
@@ -358,7 +365,7 @@ private:
   void keyDown(const Message::Connection& connection, Param& params) {
     // キー入力で４方向へ回転移動する
     // DEBUG用
-    if (now_rotation_) return;
+    if (now_rotation_ || paused_) return;
     
     int keycode = boost::any_cast<int>(params.at("keycode"));
 

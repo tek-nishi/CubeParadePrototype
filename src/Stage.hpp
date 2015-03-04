@@ -209,6 +209,7 @@ private:
           timer_tasks_.add(build_speed_, [this, pos_block]() {
               Param params = {
                 { "entry_pos", pos_block },
+                { "paused", true },
               };
               message_.signal(Msg::CREATE_CUBEPLAYER, params);
             });

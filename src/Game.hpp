@@ -194,6 +194,7 @@ private:
     for (const auto& pos : params_["game.entry"]) {
       Param params = {
         { "entry_pos", Json::getVec3<int>(pos) },
+        { "paused", false },
       };
       message_.signal(Msg::CREATE_CUBEPLAYER, params);
     }

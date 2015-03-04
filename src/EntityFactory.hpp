@@ -52,7 +52,9 @@ private:
 
   
   void createCubePlayer(const Message::Connection& connection, Param& params) {
-    createAndAddEntity<CubePlayer>(boost::any_cast<const ci::Vec3i& >(params["entry_pos"]));
+    const auto& entry_pos = boost::any_cast<const ci::Vec3i& >(params["entry_pos"]);
+    bool paused = boost::any_cast<bool>(params["paused"]);
+    createAndAddEntity<CubePlayer>(entry_pos, paused);
   }
   
   void createFallcube(const Message::Connection& connection, Param& params) {
